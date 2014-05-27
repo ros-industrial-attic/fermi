@@ -1,0 +1,9 @@
+<library path="lib/libmoveit_cartesian_planner">
+  <class name="moveit_cartesian_planner/AddWayPoint"
+         type="moveit_cartesian_planner::AddWayPoint"
+         base_class_type="rviz::Tool">
+    <description>
+      Tool for adding spherical way points for trajectory generation.
+    </description>
+  </class>
+</library>
