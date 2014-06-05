@@ -1,9 +1,17 @@
 <library path="lib/libmoveit_cartesian_planner">
   <class name="moveit_cartesian_planner/AddWayPoint"
          type="moveit_cartesian_planner::AddWayPoint"
-         base_class_type="rviz::Tool">
+         base_class_type="rviz::Panel">
     <description>
       Tool for adding spherical way points for trajectory generation.
     </description>
   </class>
+    <class name="moveit_cartesian_planner/OnMouseClick"
+         type="moveit_cartesian_planner::OnMouseClick"
+         base_class_type="rviz::Tool">
+    <description>
+      Mouse Click detection tool.
+    </description>
+  </class>
+
 </library>

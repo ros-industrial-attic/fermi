@@ -28,14 +28,19 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 set(moveit_cartesian_planner_SRCS
   src/add_way_point.cpp
+  src/on_mouse_click.cpp
+  src/widgets/path_planning_widget.cpp
+  ${MOC_FILES}
 )
 
 set(moveit_cartesian_planner_HDRS
   include/moveit_cartesian_planner/add_way_point.h
+  include/moveit_cartesian_planner/on_mouse_click.h
+  include/moveit_cartesian_planner/widgets/path_planning_widget.h
 )
 
 set(moveit_cartesian_planner_UIS
-  src/path_planner.ui
+  src/widgets/path_planning_widget.ui
 )
 
 set(moveit_cartesian_planner_INCLUDE_DIRECTORIES
@@ -51,8 +56,8 @@ catkin_package(
   pluginlib
   roscpp
   rqt_gui
-  rqt_gui_cpp
   rviz
+  rqt_gui_cpp
   visualization_msgs
 )
 catkin_python_setup()
@@ -77,14 +82,6 @@ install(PROGRAMS scripts/moveit_cartesian_planner
   DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
-#install(DIRECTORY include/${PROJECT_NAME}/
-#  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#  FILES_MATCHING PATTERN "*.h"
-#  PATTERN ".svn" EXCLUDE
-#)
-
 install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-#add_executable(rqt_pkg src/my_plugin.cpp)
-#target_link_libraries(rqt_pkg ${catkin_LIBRARIES})
