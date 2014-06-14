@@ -68,6 +68,9 @@ public:
 
 	virtual void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr);
 
+	//function for returning the count of the current points in the rviz enviroment!!
+	virtual int getCount();
+
 private:
 	//create controls for each different marker. Here we have control for the defaulot starting control ArrowMarkers(the cartesian way points)
 	InteractiveMarkerControl& makeArrowControl_default(InteractiveMarker &msg );
@@ -101,9 +104,13 @@ protected Q_SLOTS:
 	virtual void save(rviz::Config config) const;
 public Q_SLOTS:
 	virtual void point_deleted(std::string marker_name); 
+	void addPointFromUI( const tf::Vector3 position,const tf::Quaternion orientation);
+	void point_pose_updated(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation);
 Q_SIGNALS:
-	void point_added();
-	void point_deleted(); 
+	void initRviz();
+	void point_deleted_from_Rviz(int marker_name_nr); 
+	void addPointFrom_RViz(const tf::Vector3& position,const tf::Quaternion& orientation,const int count);
+	void point_pose_updated_RViz(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation);
 
 
 protected:

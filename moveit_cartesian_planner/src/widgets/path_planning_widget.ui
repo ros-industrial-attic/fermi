@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>420</width>
-    <height>368</height>
+    <width>543</width>
+    <height>593</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,8 +18,8 @@
     <rect>
      <x>0</x>
      <y>10</y>
-     <width>401</width>
-     <height>351</height>
+     <width>541</width>
+     <height>581</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -29,12 +29,12 @@
     <attribute name="title">
      <string>Make Plan</string>
     </attribute>
-    <widget class="QPushButton" name="btn_RemovePoint">
+    <widget class="QPushButton" name="btnRemovePoint">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>270</y>
-       <width>98</width>
+       <x>160</x>
+       <y>330</y>
+       <width>101</width>
        <height>27</height>
       </rect>
      </property>
@@ -45,24 +45,14 @@
     <widget class="QPushButton" name="btnAddPoint">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>270</y>
-       <width>98</width>
+       <x>10</x>
+       <y>390</y>
+       <width>111</width>
        <height>27</height>
       </rect>
      </property>
      <property name="text">
       <string>Add Point</string>
-     </property>
-    </widget>
-    <widget class="QTreeView" name="treeView_points">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>30</y>
-       <width>331</width>
-       <height>231</height>
-      </rect>
      </property>
     </widget>
     <widget class="QLabel" name="label">
@@ -78,10 +68,123 @@
       <string>Path Way Points</string>
      </property>
     </widget>
-    <zorder>btn_RemovePoint</zorder>
-    <zorder>treeView_points</zorder>
+    <widget class="QLineEdit" name="txtPos">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>300</y>
+       <width>111</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txtPointName">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>300</y>
+       <width>101</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txtOrient">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>360</y>
+       <width>111</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>280</y>
+       <width>91</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set Position</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>340</y>
+       <width>111</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set Orientation</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>280</y>
+       <width>81</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Point</string>
+     </property>
+    </widget>
+    <widget class="QTreeView" name="treeView">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>40</y>
+       <width>541</width>
+       <height>231</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_LoadPath">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>470</y>
+       <width>98</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Load Path</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_ExportPath">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>470</y>
+       <width>98</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Export Path</string>
+     </property>
+    </widget>
+    <zorder>btnRemovePoint</zorder>
     <zorder>label</zorder>
     <zorder>btnAddPoint</zorder>
+    <zorder>txtPos</zorder>
+    <zorder>txtPointName</zorder>
+    <zorder>txtOrient</zorder>
+    <zorder>label_2</zorder>
+    <zorder>label_3</zorder>
+    <zorder>label_4</zorder>
+    <zorder>treeView</zorder>
+    <zorder>btn_LoadPath</zorder>
+    <zorder>btn_ExportPath</zorder>
    </widget>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
