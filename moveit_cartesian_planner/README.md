@@ -1,5 +1,5 @@
 
-##1. RViz User Interface:
+##1. RViz and RQT User Interface:
 There are two types of interactive markers:
   - The cube(box) which acts as a pointer which the user can drag around the RViz enviroment. Fruthermore by clicking on the box another interactive marker an arrow is added to the RViz enviroment
   - The arrow should be the way point for the cartesian trajectory planning. The user can also move the sphere around the RViz enviroment. The orientation of the arrow can be changed by holding the CTRL key and moving it with the mouse.
@@ -15,6 +15,7 @@ There are two types of interactive markers:
    - [x] Change the AddWayPoint inheritance from Tool to Panel or Display. The AddWay point has been changed to Panel.
    - [x] User Interaction simultaniously between RViz and RQT dockable widged
    - [ ] Extensive testing and Improvement of the the UI, RViz enviroment and the MoveIt interface.
+   - [ ] Add KUKA LWR 4 model and test it
    - [ ] Trace bugs and fix them...
 
 
