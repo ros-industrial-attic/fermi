@@ -6,192 +6,183 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>543</width>
-    <height>593</height>
+    <width>501</width>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QTabWidget" name="tabWidget">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>10</y>
-     <width>541</width>
-     <height>581</height>
-    </rect>
-   </property>
-   <property name="currentIndex">
-    <number>0</number>
-   </property>
-   <widget class="QWidget" name="tab_1">
-    <attribute name="title">
-     <string>Make Plan</string>
-    </attribute>
-    <widget class="QPushButton" name="btnRemovePoint">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>330</y>
-       <width>101</width>
-       <height>27</height>
-      </rect>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
      </property>
-     <property name="text">
-      <string>Remove Point</string>
-     </property>
+     <widget class="QWidget" name="tab_1">
+      <attribute name="title">
+       <string>Make Plan</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="8" column="0">
+        <widget class="QPushButton" name="btn_LoadPath">
+         <property name="text">
+          <string>Load Path</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Point</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Path Way Points</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" rowspan="4" colspan="2">
+        <widget class="QWidget" name="FormWidgetGridLayout" native="true">
+         <layout class="QFormLayout" name="FormLayoutObjectPose_2">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="xLabel">
+            <property name="text">
+             <string>X (m)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="yLabel">
+            <property name="text">
+             <string>Y (m)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="LineEditY"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="rxLabel">
+            <property name="text">
+             <string>Rx (deg)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="LineEditRx"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="LineEditRy"/>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="LineEditRz"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="zLabel">
+            <property name="text">
+             <string>Z (m)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="LineEditZ"/>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="LineEditX"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="ryLabel">
+            <property name="text">
+             <string>Ry (deg)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="rzLabel">
+            <property name="text">
+             <string>Rz (deg)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="3">
+        <widget class="QTreeView" name="treeView"/>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Set Position/Orientation</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QPushButton" name="btnAddPoint">
+         <property name="text">
+          <string>Add Point</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QPushButton" name="btn_ExportPath">
+         <property name="text">
+          <string>Export Path</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="txtPointName"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="btnRemovePoint">
+           <property name="text">
+            <string>Remove Point</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+      <zorder>label</zorder>
+      <zorder>btnAddPoint</zorder>
+      <zorder>label_2</zorder>
+      <zorder>treeView</zorder>
+      <zorder>btn_LoadPath</zorder>
+      <zorder>btn_ExportPath</zorder>
+      <zorder>FormWidgetGridLayout</zorder>
+      <zorder>label_4</zorder>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Execute Plan</string>
+      </attribute>
+      <widget class="QPushButton" name="targetPoint">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>98</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>TargetPoint</string>
+       </property>
+      </widget>
+     </widget>
     </widget>
-    <widget class="QPushButton" name="btnAddPoint">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>390</y>
-       <width>111</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Add Point</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>10</y>
-       <width>111</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Path Way Points</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtPos">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>300</y>
-       <width>111</width>
-       <height>27</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtPointName">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>300</y>
-       <width>101</width>
-       <height>27</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtOrient">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>360</y>
-       <width>111</width>
-       <height>27</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>280</y>
-       <width>91</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Set Position</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_3">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>340</y>
-       <width>111</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Set Orientation</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_4">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>280</y>
-       <width>81</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Point</string>
-     </property>
-    </widget>
-    <widget class="QTreeView" name="treeView">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>40</y>
-       <width>541</width>
-       <height>231</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_LoadPath">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>470</y>
-       <width>98</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Load Path</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_ExportPath">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>470</y>
-       <width>98</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Export Path</string>
-     </property>
-    </widget>
-    <zorder>btnRemovePoint</zorder>
-    <zorder>label</zorder>
-    <zorder>btnAddPoint</zorder>
-    <zorder>txtPos</zorder>
-    <zorder>txtPointName</zorder>
-    <zorder>txtOrient</zorder>
-    <zorder>label_2</zorder>
-    <zorder>label_3</zorder>
-    <zorder>label_4</zorder>
-    <zorder>treeView</zorder>
-    <zorder>btn_LoadPath</zorder>
-    <zorder>btn_ExportPath</zorder>
-   </widget>
-   <widget class="QWidget" name="tab_2">
-    <attribute name="title">
-     <string>Execute Plan</string>
-    </attribute>
-   </widget>
-  </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

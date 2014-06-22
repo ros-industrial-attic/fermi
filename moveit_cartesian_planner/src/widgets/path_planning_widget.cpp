@@ -1,5 +1,16 @@
 #include <moveit_cartesian_planner/widgets/path_planning_widget.h>
 #include <moveit_cartesian_planner/point_tree_model.h>
+#include <moveit_cartesian_planner/generate_cartesian_path.h>
+
+
+
+#ifndef DEG2RAD
+#define DEG2RAD(x) ((x)*0.017453293)
+#endif
+
+#ifndef RAD2DEG
+#define RAD2DEG(x) ((x)*57.29578)
+#endif
 
 namespace moveit_cartesian_planner
 {
@@ -19,23 +30,27 @@ namespace moveit_cartesian_planner
 
 			// initializing gui
 			ui_.setupUi(this);
-			ui_.txtPos->setText("0.0;0.0;0.0");
-			ui_.txtOrient->setText("0.0;0.0;0.0;1.0");
+      //set up the starting values for the lineEdit of the positions
+      ui_.LineEditX->setText("0.0");
+      ui_.LineEditY->setText("0.0");
+      ui_.LineEditZ->setText("0.0");
+      //set up the starting values for the lineEdit of the orientations, in Euler angles
+      ui_.LineEditRx->setText("0.0");
+      ui_.LineEditRy->setText("0.0");
+      ui_.LineEditRz->setText("0.0");
+
       ui_.txtPointName->setText("0");
       QStringList headers;
-      headers<<tr("Point")<<tr("Position")<<tr("Orientation");
+      headers<<tr("Point")<<tr("Position (m)")<<tr("Orientation (deg)");
       PoinTtreeModel *model = new PoinTtreeModel(headers,"add_point_button");
       ui_.treeView->setModel(model);
-
-      // QCompleter *completer = new QCompleter(pointList);
-      // completer->setCaseSensitivity(Qt::CaseInsensitive);
-      // ui_.txtPointName->setCompleter(completer);
 
 			//connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(point_added_from_UI()));
       connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(point_added_from_UI()));
       connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(point_deleted_from_UI()));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
       connect(ui_.treeView->model(),SIGNAL(dataChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex&,const QModelIndex&)));
+      connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(parse_waypoint_btn_slot()));
 		}
     void PathPlanningWidget::pointRange()
     {
@@ -59,50 +74,48 @@ namespace moveit_cartesian_planner
     void PathPlanningWidget::selectedPoint(const QModelIndex& current, const QModelIndex& previous)
     {
       ROS_INFO("Selected Index Changed");
-      
+
+       if(current.parent()==QModelIndex())
         ui_.txtPointName->setText(QString::number(current.row()));
+      else if((current.parent()!=QModelIndex()) && (current.parent().parent() == QModelIndex()))
+        ui_.txtPointName->setText(QString::number(current.parent().row()));
+      else 
+        ui_.txtPointName->setText(QString::number(current.parent().parent().row()));
     }
 		void PathPlanningWidget::point_added_from_UI()
 		{
 
-			QStringList strings_pos = ui_.txtPos->text().split( ';' );
-			QStringList strings_orient = ui_.txtOrient->text().split( ';' );
-			ROS_INFO_STREAM("string:");
+        double x,y,z,rx,ry,rz;
+        x = ui_.LineEditX->text().toDouble();
+        y = ui_.LineEditY->text().toDouble();
+        z = ui_.LineEditZ->text().toDouble();
+        rx = DEG2RAD(ui_.LineEditRx->text().toDouble());
+        ry = DEG2RAD(ui_.LineEditRy->text().toDouble());
+        rz = DEG2RAD(ui_.LineEditRz->text().toDouble());
 
-			if( (strings_pos.size() >= 3) && (strings_orient.size() >=4))
-  				{
-    				bool x_ok = true;
-    				float x = strings_pos[ 0 ].toFloat( &x_ok );
-    				bool y_ok = true;
-    				float y = strings_pos[ 1 ].toFloat( &y_ok );
-    				bool z_ok = true;
-    				float z = strings_pos[ 2 ].toFloat( &z_ok );
+        // create transform
+        tf::Vector3 p(x,y,z);
+        tf::Quaternion q;
 
-    				bool x_orient_ok = true;
-    				float x_orient = strings_orient[ 0 ].toFloat( &x_orient_ok );
-    				bool y_orient_ok = true;
-    				float y_orient = strings_orient[ 1 ].toFloat( &y_orient_ok );
-    				bool z_orient_ok = true;
-    				float z_orient = strings_orient[ 2 ].toFloat( &z_orient_ok );
-    				bool w_orient_ok = true;
-    				float w_orient = strings_orient[ 3 ].toFloat( &w_orient_ok );
-    				if( x_ok && y_ok && z_ok && x_orient_ok && y_orient_ok && z_orient_ok && w_orient_ok)
-    				{
+        tf::Matrix3x3 m;
+        m.setRPY(rx,ry,rz);
+        m.getRotation(q);
+        //q.setRPY(rx,ry,rz);
+        tf::Transform point_pos(q,p);
+        Q_EMIT addPoint(point_pos);
+        ROS_INFO_STREAM("Quartenion set at point add UI: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
 
-      					Q_EMIT addPoint( tf::Vector3( x, y, z ),tf::Quaternion(x_orient,y_orient,z_orient,w_orient));
-    				}
-    				else
-    				{
-    					ui_.txtPos->setText("0.0;0.0;0.0");
-    				  ui_.txtOrient->setText("0.0;0.0;0.0;1.0");
-    				}
-  				}
-  				else
-  				{
-  					    ui_.txtPos->setText("0.0;0.0;0.0");
-    				    ui_.txtOrient->setText("0.0;0.0;0.0;1.0");
-  				}
-          pointRange();
+        //reset after adding a point the text fields
+        //set up the starting values for the lineEdit of the positions
+        ui_.LineEditX->setText("0.0");
+        ui_.LineEditY->setText("0.0");
+        ui_.LineEditZ->setText("0.0");
+        //set up the starting values for the lineEdit of the orientations, in Euler angles
+        ui_.LineEditRx->setText("0.0");
+        ui_.LineEditRy->setText("0.0");
+        ui_.LineEditRz->setText("0.0");
+
+        pointRange();         
 		}
     void PathPlanningWidget::point_deleted_from_UI()
     {
@@ -119,41 +132,33 @@ namespace moveit_cartesian_planner
           Q_EMIT point_del_UI_signal(marker_name.c_str());
         }
     }
-    void PathPlanningWidget::insert_row(const tf::Vector3& position,const tf::Quaternion& orientation,const int count)
+    void PathPlanningWidget::insert_row(const tf::Transform& point_pos,const int count)
     {
 
       ROS_INFO("inserting new row in the TreeView");
-      //int count = ui_.treeView->model()->rowCount();
-      //QModelIndex index  = ui_.treeView->selectionModel()->currentIndex();
-      //QModelIndex index = count;
       QAbstractItemModel *model = ui_.treeView->model();
+
+      //convert the quartenion to roll pitch yaw angle
+      double rx,ry,rz;
+      tf::Matrix3x3 m(point_pos.getRotation());
+      m.getRPY(rx, ry, rz,1);
+      //ROS_INFO_STREAM("Quartenion at add_row: "<<orientation.x()<<"; "<<orientation.y()<<"; "<<orientation.z()<<"; "<<orientation.w()<<";");
 
        if((!model->insertRow(count,model->index(count, 0))) && count==0)
        {
          return;
        }
-      //model->insertRow(count,model->index(count, 0));
-
-
-      QString pos_s;
-      pos_s = QString::number(position.x()) + "; " + QString::number(position.y()) + "; " + QString::number(position.z()) + ";";
-      QString orient_s;
-      orient_s = QString::number(orientation.x()) + "; " + QString::number(orientation.y()) + "; " + QString::number(orientation.z()) + "; " + QString::number(orientation.w()) + ";";
-
       //set the strings of each axis of the position
-      QString pos_x = QString::number(position.x());
-      QString pos_y = QString::number(position.y());
-      QString pos_z = QString::number(position.z());
+      QString pos_x = QString::number(point_pos.getOrigin().x());
+      QString pos_y = QString::number(point_pos.getOrigin().y());
+      QString pos_z = QString::number(point_pos.getOrigin().z());
 
       //repeat that with the orientation
-      QString orient_x = QString::number(orientation.x());
-      QString orient_y = QString::number(orientation.y());
-      QString orient_z = QString::number(orientation.z());
-      QString orient_w = QString::number(orientation.w());
+      QString orient_x = QString::number(RAD2DEG(rx));
+      QString orient_y = QString::number(RAD2DEG(ry));
+      QString orient_z = QString::number(RAD2DEG(rz));
 
       model->setData(model->index(count,0),QVariant(count),Qt::EditRole);
-      // model->setData(model->index(count,1),QVariant(pos_s),Qt::EditRole);
-      // model->setData(model->index(count,2),QVariant(orient_s),Qt::EditRole);
 
       //add a child to the last inserted item. First add children in the treeview that
       //are just telling the user that if he expands them he can see details about the position and orientation of each point
@@ -169,9 +174,9 @@ namespace moveit_cartesian_planner
       model->insertRows(0, 3, chldind_pos);
 
       //next we set up the data for each of these columns. First the names
-      model->setData(model->index(0, 0, chldind_pos), QVariant("X"), Qt::EditRole);
-      model->setData(model->index(1, 0, chldind_pos), QVariant("Y"), Qt::EditRole);
-      model->setData(model->index(2, 0, chldind_pos), QVariant("Z"), Qt::EditRole);
+      model->setData(model->index(0, 0, chldind_pos), QVariant("X:"), Qt::EditRole);
+      model->setData(model->index(1, 0, chldind_pos), QVariant("Y:"), Qt::EditRole);
+      model->setData(model->index(2, 0, chldind_pos), QVariant("Z:"), Qt::EditRole);
 
       //second we add the current position information, for each position axis separately
       model->setData(model->index(0, 1, chldind_pos), QVariant(pos_x), Qt::EditRole);
@@ -181,18 +186,16 @@ namespace moveit_cartesian_planner
 
 //*****************************Set the children for the orientation**********************************************************
       //now we repeat everything again,similar as the position for adding the children for the orientation
-      model->insertRows(0, 4, chldind_orient);
+      model->insertRows(0, 3, chldind_orient);
       //next we set up the data for each of these columns. First the names
-      model->setData(model->index(0, 0, chldind_orient), QVariant("X"), Qt::EditRole);
-      model->setData(model->index(1, 0, chldind_orient), QVariant("Y"), Qt::EditRole);
-      model->setData(model->index(2, 0, chldind_orient), QVariant("Z"), Qt::EditRole);
-      model->setData(model->index(3, 0, chldind_orient), QVariant("W"), Qt::EditRole);
+      model->setData(model->index(0, 0, chldind_orient), QVariant("Rx:"), Qt::EditRole);
+      model->setData(model->index(1, 0, chldind_orient), QVariant("Ry:"), Qt::EditRole);
+      model->setData(model->index(2, 0, chldind_orient), QVariant("Rz:"), Qt::EditRole);
 
       //second we add the current position information, for each position axis separately
       model->setData(model->index(0, 2, chldind_orient), QVariant(orient_x), Qt::EditRole);
       model->setData(model->index(1, 2, chldind_orient), QVariant(orient_y), Qt::EditRole);
       model->setData(model->index(2, 2, chldind_orient), QVariant(orient_z), Qt::EditRole);
-      model->setData(model->index(3, 2, chldind_orient), QVariant(orient_w), Qt::EditRole);
 //****************************************************************************************************************************
       pointRange();
 
@@ -201,14 +204,8 @@ namespace moveit_cartesian_planner
     {
         QAbstractItemModel *model = ui_.treeView->model();
 
-        //int row_to_remove = atoi(marker_name.c_str());
-        // if((marker_nr != 0) ) //|| (marker_nr < model->rowCount())
-        // {
           model->removeRow(marker_nr,QModelIndex());
           ROS_INFO_STREAM("deleting point nr: "<< marker_nr);
-
-          //make a different function of this it doesnt make sense to delete the marker twice!!!!!!
-          //Q_EMIT point_del_UI(marker_name);
 
           for(int i=marker_nr;i<=model->rowCount();++i)
           {
@@ -217,25 +214,28 @@ namespace moveit_cartesian_planner
           //check how to properly set the selection
           ui_.treeView->selectionModel()->setCurrentIndex(model->index((model->rowCount()-1),0,QModelIndex()),QItemSelectionModel::ClearAndSelect);
           ui_.txtPointName->setText(QString::number(model->rowCount()-1));
-        // }
-        // else
-        //   return;
         pointRange();
     }
 
-    void PathPlanningWidget::point_pos_updated_slot(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation)
+    void PathPlanningWidget::point_pos_updated_slot(const tf::Transform& point_pos, const char* marker_name)
     {
 
         QAbstractItemModel *model = ui_.treeView->model();
 
         ROS_INFO_STREAM("Updating marker name:"<<marker_name);
 
-      if((strcmp(marker_name,"add_point_button") == 0) && (atoi(marker_name)==0))
+        //convert the quartenion to roll pitch yaw Euler angle
+        double rx,ry,rz;
+        tf::Matrix3x3 m(point_pos.getRotation());
+        //ROS_INFO_STREAM("Quartenion set at update_point: "<<orientation.x()<<"; "<<orientation.y()<<"; "<<orientation.z()<<"; "<<orientation.w()<<";");
+        m.getRPY(rx, ry, rz,1);
+
+      if((strcmp(marker_name,"add_point_button") == 0) || (atoi(marker_name)==0))
       {
           QString pos_s;
-          pos_s = QString::number(position.x()) + "; " + QString::number(position.y()) + "; " + QString::number(position.z()) + ";";
+          pos_s = QString::number(point_pos.getOrigin().x()) + "; " + QString::number(point_pos.getOrigin().y()) + "; " + QString::number(point_pos.getOrigin().z()) + ";";
           QString orient_s;
-          orient_s = QString::number(orientation.x()) + "; " + QString::number(orientation.y()) + "; " + QString::number(orientation.z()) + "; " + QString::number(orientation.w()) + ";";
+          orient_s = QString::number(rx) + "; " + QString::number(ry) + "; " + QString::number(rz) + ";";
 
           model->setData(model->index(0,0),QVariant("add_point_button"),Qt::EditRole);
           model->setData(model->index(0,1),QVariant(pos_s),Qt::EditRole);
@@ -245,31 +245,20 @@ namespace moveit_cartesian_planner
       {
 
           int changed_marker = atoi(marker_name);
-
-          // QString pos_s;
-          // pos_s = QString::number(position.x()) + "; " + QString::number(position.y()) + "; " + QString::number(position.z()) + ";";
-          // QString orient_s;
-          // orient_s = QString::number(orientation.x()) + "; " + QString::number(orientation.y()) + "; " + QString::number(orientation.z()) + "; " + QString::number(orientation.w()) + ";";
-
-          // model->setData(model->index(changed_marker,0),QVariant(changed_marker),Qt::EditRole);
-          // model->setData(model->index(changed_marker,1),QVariant(pos_s),Qt::EditRole);
-          // model->setData(model->index(changed_marker,2),QVariant(orient_s),Qt::EditRole);
-
     //**********************update the positions and orientations of the children as well***********************************************************************************************
           QModelIndex ind = model->index(changed_marker, 0);
           QModelIndex chldind_pos = model->index(0, 0, ind);
           QModelIndex chldind_orient = model->index(1, 0, ind);
 
           //set the strings of each axis of the position
-          QString pos_x = QString::number(position.x());
-          QString pos_y = QString::number(position.y());
-          QString pos_z = QString::number(position.z());
+          QString pos_x = QString::number(point_pos.getOrigin().x());
+          QString pos_y = QString::number(point_pos.getOrigin().y());
+          QString pos_z = QString::number(point_pos.getOrigin().z());
 
           //repeat that with the orientation
-          QString orient_x = QString::number(orientation.x());
-          QString orient_y = QString::number(orientation.y());
-          QString orient_z = QString::number(orientation.z());
-          QString orient_w = QString::number(orientation.w());
+          QString orient_x = QString::number(RAD2DEG(rx));
+          QString orient_y = QString::number(RAD2DEG(ry));
+          QString orient_z = QString::number(RAD2DEG(rz));
 
           //second we add the current position information, for each position axis separately
           model->setData(model->index(0, 1, chldind_pos), QVariant(pos_x), Qt::EditRole);
@@ -280,8 +269,6 @@ namespace moveit_cartesian_planner
           model->setData(model->index(0, 2, chldind_orient), QVariant(orient_x), Qt::EditRole);
           model->setData(model->index(1, 2, chldind_orient), QVariant(orient_y), Qt::EditRole);
           model->setData(model->index(2, 2, chldind_orient), QVariant(orient_z), Qt::EditRole);
-          model->setData(model->index(3, 2, chldind_orient), QVariant(orient_w), Qt::EditRole);
-
 //*****************************************************************************************************************************************************************************************
       }
     }
@@ -289,87 +276,18 @@ namespace moveit_cartesian_planner
     void PathPlanningWidget::treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2)
     {
 
-      //this function has a bug!!!!
-
       qRegisterMetaType<std::string>("std::string");
       QAbstractItemModel *model = ui_.treeView->model();
       QVariant index_data;
 
       if ((index.parent() == QModelIndex()) && (index.row()!=0))
       {
-        // //ROS_INFO_STREAM("Im at the root item with number:"<<index.row());
-        // QVariant pos_root = model->data(model->index(index.row(), 1),Qt::EditRole);
-        // QVariant orient_root = model->data(model->index(index.row(), 2),Qt::EditRole);
-        // QString temp_pos_str = pos_root.toString();
-        // QString temp_orient_str = orient_root.toString();
-
-        // //check if these ones are correct!!!
-        // QModelIndex chldind_pos = model->index(0, 0,index.sibling(index.row(),0));
-        // QModelIndex chldind_orient = model->index(1, 0,index.sibling(index.row(),0));
-
-        // std::string pos_data_str = temp_pos_str.toUtf8().constData();
-        // std::string orient_data_str = temp_orient_str.toUtf8().constData();
-        // ROS_INFO_STREAM("Data in tree view. Row Nr:"<<index.row()<<"Data Position:"<<pos_data_str.c_str()<<"Data Orientation:"<<orient_data_str.c_str());
-
-
-        // QStringList strings_pos = temp_pos_str.split( ';' );
-        // QStringList strings_orient = temp_orient_str.split( ';' );
-
-        //  std::stringstream s;
-        //  s<<index.row();
-        //  std::string temp_str = s.str();
-
-        // if( (strings_pos.size() >= 3) && (strings_orient.size() >=4))
-        //   {
-        //     bool x_ok = true;
-        //     float x = strings_pos[ 0 ].toFloat( &x_ok );
-        //     bool y_ok = true;
-        //     float y = strings_pos[ 1 ].toFloat( &y_ok );
-        //     bool z_ok = true;
-        //     float z = strings_pos[ 2 ].toFloat( &z_ok );
-
-        //     bool x_orient_ok = true;
-        //     float x_orient = strings_orient[ 0 ].toFloat( &x_orient_ok );
-        //     bool y_orient_ok = true;
-        //     float y_orient = strings_orient[ 1 ].toFloat( &y_orient_ok );
-        //     bool z_orient_ok = true;
-        //     float z_orient = strings_orient[ 2 ].toFloat( &z_orient_ok );
-        //     bool w_orient_ok = true;
-        //     float w_orient = strings_orient[ 3 ].toFloat( &w_orient_ok );
-        //     if( x_ok && y_ok && z_ok && x_orient_ok && y_orient_ok && z_orient_ok && w_orient_ok)
-        //     {
-
-        //       //second we add the current position information, for each position axis separately
-        //       model->setData(model->index(0, 1, chldind_pos), QVariant(x), Qt::EditRole);
-        //       model->setData(model->index(1, 1, chldind_pos), QVariant(y), Qt::EditRole);
-        //       model->setData(model->index(2, 1, chldind_pos), QVariant(z), Qt::EditRole);
-
-        //       //second we add the current position information, for each position axis separately
-        //       model->setData(model->index(0, 2, chldind_orient), QVariant(x_orient), Qt::EditRole);
-        //       model->setData(model->index(1, 2, chldind_orient), QVariant(y_orient), Qt::EditRole);
-        //       model->setData(model->index(2, 2, chldind_orient), QVariant(z_orient), Qt::EditRole);
-        //       model->setData(model->index(3, 2, chldind_orient), QVariant(w_orient), Qt::EditRole);
-
-        //       //Q_EMIT point_pos_updated_signal( temp_str.c_str(),tf::Vector3( x, y, z ),tf::Quaternion(x_orient,y_orient,z_orient,w_orient));
-        //     }
-        //     else
-        //     {
-        //       QString pos_s;
-        //       pos_s = "0.0;0.0;0.0";
-        //       QString orient_s;
-        //       orient_s = "0.0;0.0;0.0;1.0;";
-
-        //       model->setData(model->index(index.row(),1,QModelIndex()),QVariant(pos_s),Qt::EditRole);
-        //       model->setData(model->index(index.row(),2,QModelIndex()),QVariant(orient_s),Qt::EditRole);
-        //       //Q_EMIT point_pos_updated_signal( temp_str.c_str(),tf::Vector3( 0.0, 0.0, 0.0 ),tf::Quaternion(0.0,0.0,0.0,1.0));
-        //     }
-        //   }
-
+        
 
       }
       else if(((index.parent().parent()) != QModelIndex()) && (index.parent().parent().row()!=0))
       {
-          ROS_INFO("I am editing a child item");
+          //ROS_INFO("I am editing a child item");
           QModelIndex main_root = index.parent().parent();
           std::stringstream s;
           s<<main_root.row();
@@ -385,29 +303,29 @@ namespace moveit_cartesian_planner
           QVariant orient_x = model->data(model->index(0, 2,chldind_orient),Qt::EditRole);
           QVariant orient_y = model->data(model->index(1, 2,chldind_orient),Qt::EditRole);
           QVariant orient_z = model->data(model->index(2, 2,chldind_orient),Qt::EditRole);
-          QVariant orient_w = model->data(model->index(3, 2,chldind_orient),Qt::EditRole);
 
-          //if(chldind_pos.isValid() && chldind_orient.isValid())
-          //{
+            tf::Vector3 p(pos_x.toDouble(),pos_y.toDouble(),pos_z.toDouble());
 
-            // QString pos_s;
-            // pos_s = pos_x.toString() + "; " + pos_y.toString() + "; " + pos_z.toString() + ";";
-            // QString orient_s;
-            // orient_s = orient_x.toString() + "; " + orient_y.toString() + "; " + orient_z.toString() + "; " + orient_w.toString() + ";";
+            tf::Quaternion q;
+            float rx,ry,rz;
+            rx = DEG2RAD(orient_x.toDouble());
+            ry = DEG2RAD(orient_y.toDouble());
+            rz = DEG2RAD(orient_z.toDouble());
 
-            // std::string pos_data_str = pos_s.toUtf8().constData();
-            // std::string orient_data_str = orient_s.toUtf8().constData();
+            tf::Matrix3x3 m;
+            m.setRPY(rx,ry,rz);
+            m.getRotation(q);
+            //q.setRPY(DEG2RAD(orient_x.toDouble()),DEG2RAD(orient_y.toDouble()),DEG2RAD(orient_z.toDouble()));
+            ROS_INFO_STREAM("Quartenion at TreeView Edit: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
+            tf::Transform point_pos = tf::Transform(q,p);
 
-            // ROS_INFO_STREAM("Row nr:"<<main_root.row()<<"Data Position Compiled: "<<pos_data_str.c_str()<<" Data Orientation Compiled: "<<orient_data_str.c_str());
-
-            //model->setData(model->index(main_root.row(),1,QModelIndex()),QVariant(pos_s),Qt::EditRole);
-            //model->setData(model->index(main_root.row(),2,QModelIndex()),QVariant(orient_s),Qt::EditRole);
-
-            Q_EMIT point_pos_updated_signal( temp_str.c_str(),tf::Vector3( pos_x.toDouble(), pos_y.toDouble(), pos_z.toDouble() ),tf::Quaternion(orient_x.toDouble(),orient_y.toDouble(),orient_z.toDouble(),orient_w.toDouble()));
-          //}
-
+            Q_EMIT point_pos_updated_signal(point_pos,temp_str.c_str());
       }
 
+    }
+    void PathPlanningWidget::parse_waypoint_btn_slot()
+    {
+      Q_EMIT parse_waypoint_btn_signal();
     }
 
 	}

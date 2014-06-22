@@ -29,6 +29,8 @@
 #include <rviz/properties/string_property.h>
 #include <moveit_cartesian_planner/widgets/path_planning_widget.h>
 
+#include <moveit_cartesian_planner/generate_cartesian_path.h>
+
 #include <QWidget>
 #include <QCursor>
 #include <QObject>
@@ -63,7 +65,7 @@ public:
 	//fucntion for all the interactive marker interactions
 	virtual void processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
 
-	virtual void makeArrow(const tf::Vector3& point_pos,const tf::Quaternion& point_orient,int count_arrow);//
+	virtual void makeArrow(const tf::Transform& point_pos,int count_arrow);//
 	virtual void makeBox();
 
 	virtual void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr);
@@ -85,11 +87,10 @@ private:
 
 	boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
 	interactive_markers::MenuHandler menu_handler;
-	std::vector<tf::Vector3 > positions;
-	std::vector<tf::Quaternion> orientations;
 
-	tf::Vector3 position_box;
-	tf::Quaternion orientation_box;
+	std::vector<tf::Transform> waypoints_pos;
+	tf::Transform box_pos;
+
 	int count;
 
     message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
@@ -97,6 +98,7 @@ private:
     tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
     ros::NodeHandle n_;
     std::string target_frame_;
+    
 
 protected Q_SLOTS:
 	// rviz::Panel virtual functions
@@ -104,17 +106,21 @@ protected Q_SLOTS:
 	virtual void save(rviz::Config config) const;
 public Q_SLOTS:
 	virtual void point_deleted(std::string marker_name); 
-	void addPointFromUI( const tf::Vector3 position,const tf::Quaternion orientation);
-	void point_pose_updated(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation);
+	void addPointFromUI( const tf::Transform point_pos);
+	void point_pose_updated(const tf::Transform& point_pos, const char* marker_name);
+	void parse_waypoints();
 Q_SIGNALS:
 	void initRviz();
 	void point_deleted_from_Rviz(int marker_name_nr); 
-	void addPointFrom_RViz(const tf::Vector3& position,const tf::Quaternion& orientation,const int count);
-	void point_pose_updated_RViz(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation);
+	void addPointFrom_RViz(const tf::Transform& point_pos, const int count);
+	void point_pose_updated_RViz(const tf::Transform& point_pos, const char* marker_name);
+	void cartesian_waypoints(const std::vector<tf::Transform > point_pos);
+	void way_points_signal(std::vector<geometry_msgs::Pose> waypoints);
 
 
 protected:
     QWidget *widget_;
+    QObject *path_generate;
 
 };
 } //end of namespace moveit_cartesian_planner

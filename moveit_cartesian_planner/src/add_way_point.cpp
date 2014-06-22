@@ -1,9 +1,10 @@
 #include <moveit_cartesian_planner/add_way_point.h>
 
+
 namespace moveit_cartesian_planner
 {
 
-AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_(),  target_frame_("/point_pos") //change this depending on the move it frame
+AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_(),  target_frame_("/base_link") //change this depending on the move it frame
 {
 
      setObjectName("MoveItPlanner");
@@ -36,17 +37,22 @@ void AddWayPoint::onInitialize()
     ROS_INFO("Initializing path planning widget");
     // creating main layout
     widget_ = new widgets::PathPlanningWidget("~");
-    //this->parentWidget()->resize(widget_->width(),widget_->height());
-    QHBoxLayout* main_layout = new QHBoxLayout(this);;
+    path_generate = new GenerateCartesianPath();
+    this->parentWidget()->resize(widget_->width(),widget_->height());
+    QHBoxLayout* main_layout = new QHBoxLayout(this);
     main_layout->addWidget(widget_);
 
-    connect(widget_,SIGNAL(addPoint(tf::Vector3,tf::Quaternion)),this,SLOT(addPointFromUI( tf::Vector3,tf::Quaternion)));
+    connect(widget_,SIGNAL(addPoint(tf::Transform)),this,SLOT( addPointFromUI( tf::Transform)));
     connect(widget_,SIGNAL(point_del_UI_signal(std::string)),this,SLOT(point_deleted( std::string)));
-    connect(this,SIGNAL(addPointFrom_RViz(const tf::Vector3&,const tf::Quaternion&,const int)),widget_,SLOT(insert_row(const tf::Vector3&,const tf::Quaternion&,const int)));
-    connect(this,SIGNAL(point_pose_updated_RViz(const char*,const tf::Vector3&,const tf::Quaternion&)),widget_,SLOT(point_pos_updated_slot(const char*,const tf::Vector3&,const tf::Quaternion&)));
-    connect(widget_,SIGNAL(point_pos_updated_signal(const char*,const tf::Vector3&,const tf::Quaternion&)),this,SLOT(point_pose_updated(const char*,const tf::Vector3&,const tf::Quaternion&)));
+    connect(this,SIGNAL(addPointFrom_RViz(const tf::Transform&,const int)),widget_,SLOT(insert_row(const tf::Transform&,const int)));
+    connect(this,SIGNAL(point_pose_updated_RViz(const tf::Transform&,const char*)),widget_,SLOT(point_pos_updated_slot(const tf::Transform&,const char*)));
+    connect(widget_,SIGNAL(point_pos_updated_signal(const tf::Transform&,const char*)),this,SLOT(point_pose_updated(const tf::Transform&,const char*)));
     connect(this,SIGNAL(point_deleted_from_Rviz(int)),widget_,SLOT(remove_row(int)));
     connect(this,SIGNAL(initRviz()),widget_,SLOT(initTreeView()));
+
+    connect(widget_,SIGNAL(parse_waypoint_btn_signal()),this,SLOT(parse_waypoints()));
+    connect(this,SIGNAL(way_points_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(move_to_pose(std::vector<geometry_msgs::Pose>)));
+
 
     Q_EMIT initRviz();
 
@@ -84,12 +90,13 @@ void AddWayPoint::msgCallback(const boost::shared_ptr<const geometry_msgs::Point
              point_out.point.y,
              point_out.point.z);
 
-      tf::Vector3 point_pos;
-      tf::Quaternion point_orient;
-      point_pos = tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z);
-      //set orientation in the x-axis by default when we have mouse click
-      point_orient = tf::Quaternion(0.0,0.0,0.0,1.0);
-      makeArrow(point_pos,point_orient,count);
+      // tf::Vector3 point_posit;
+      // tf::Quaternion point_orient;
+      // point_posit = tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z);
+      // //set orientation in the x-axis by default when we have mouse click
+      // point_orient = tf::Quaternion(0.0,0.0,0.0,1.0);
+      tf::Transform point_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z));
+      makeArrow(point_pos,count);
     }
     catch (tf::TransformException &ex) 
     {
@@ -105,11 +112,11 @@ int AddWayPoint::getCount()
   return count;
 }
 
-void AddWayPoint::addPointFromUI( const tf::Vector3 position,const tf::Quaternion orientation)
+void AddWayPoint::addPointFromUI( const tf::Transform point_pos)
 {
 
   ROS_INFO("Point Added");
-  makeArrow(position,orientation,count);
+  makeArrow(point_pos,count);
 }
 
 void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -123,14 +130,12 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
   {
     case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
     {
- 
-    tf::Vector3 point_pos;
-    tf::Quaternion point_orient;
-    point_pos = tf::Vector3(feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
-    point_orient = tf::Quaternion(feedback->pose.orientation.x,feedback->pose.orientation.y,feedback->pose.orientation.z,feedback->pose.orientation.w);
 
+    tf::Transform point_pos;
+    tf::poseMsgToTF(feedback->pose,point_pos);
+    //ROS_INFO_STREAM("see if point works:"<<point_pos.getOrigin().x());
 
-    makeArrow(point_pos,point_orient,count);
+    makeArrow(point_pos,count);
     server->applyChanges();
     break;
     }
@@ -138,15 +143,11 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
     case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
     {
 
+      tf::Transform point_pos;
+      tf::poseMsgToTF(feedback->pose,point_pos);
+      point_pose_updated(point_pos, feedback->marker_name.c_str());
 
-      tf::Vector3 fb_pos(feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
-      tf::Quaternion fb_orient(feedback->pose.orientation.x,feedback->pose.orientation.y,feedback->pose.orientation.z,feedback->pose.orientation.w);
-      
-      point_pose_updated(feedback->marker_name.c_str(), fb_pos,fb_orient);
-      Q_EMIT point_pose_updated_RViz(feedback->marker_name.c_str(), fb_pos,fb_orient);
-      
-      
-
+      Q_EMIT point_pose_updated_RViz(point_pos, feedback->marker_name.c_str());
       break;
     }
     case visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT:
@@ -157,15 +158,13 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
 
       menu_handler.getCheckState(menu_item,state);
 
-      //ROS_INFO_STREAM(s.str() << ": menu item " << menu_item << " clicked" << mouse_point_ss.str() << ".");
       if(menu_item == 1)
       {
            std::string marker_name = feedback->marker_name;
            int marker_nr = atoi(marker_name.c_str());
            Q_EMIT point_deleted_from_Rviz(marker_nr);
            point_deleted(marker_name);
-           break;
-           
+           break;           
       }
       else
       {
@@ -193,78 +192,45 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
   server->applyChanges();
 }
 
-void AddWayPoint::point_pose_updated(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation)
+void AddWayPoint::point_pose_updated(const tf::Transform& point_pos, const char* marker_name)
 {
 
   if(strcmp("add_point_button",marker_name)==0)
       {
-        // tf::Vector3 fb_pos(feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
-        // tf::Quaternion fb_orient(feedback->pose.orientation.x,feedback->pose.orientation.y,feedback->pose.orientation.z,feedback->pose.orientation.w);
 
-        position_box = position;
-        orientation_box = orientation;
+        box_pos = point_pos;
 
         geometry_msgs::Pose pose;
-        //pose = feedback->pose;
-        //correct this should be only pose that is transfered!!
-         pose.position.x = position_box.x();
-         pose.position.y = position_box.y();
-         pose.position.z = position_box.z();
-
-          // pose.orientation.w = orientation_box.w();
-          // pose.orientation.x = orientation_box.x();
-          // pose.orientation.y = orientation_box.y();
-          // pose.orientation.z = orientation_box.z();
-
-          pose.orientation.w = 1.0;
-          pose.orientation.x = 0.0;
-          pose.orientation.y = 0.0;
-          pose.orientation.z = 0.0;
+        tf::poseTFToMsg(point_pos,pose);
 
         std::stringstream s;
         s << "add_point_button";
         server->setPose(s.str(),pose);
         server->applyChanges();
-        //changeMarkerControlAndPose( feedback->marker_name.c_str(),false,false,pose);
-        ROS_INFO("Cube position is updated, %f:",position_box.x());
-        //Q_EMIT point_pose_updated_RViz(marker_name, position,orientation);
+        ROS_INFO("Cube position is updated, %f:",box_pos.getOrigin().x());
 
       }
      else
      {
       int index = atoi(marker_name);
-      // tf::Vector3 fb_pos(feedback->pose.position.x, feedback->pose.position.y, feedback->pose.position.z);
-      // tf::Quaternion fb_orient(feedback->pose.orientation.x,feedback->pose.orientation.y,feedback->pose.orientation.z,feedback->pose.orientation.w);
-
-      if ( index > positions.size() )
+      
+      if ( index > waypoints_pos.size() )
       {
         return;
       }
   
-      positions[index-1] = position;
-      orientations[index-1] = orientation;
+      waypoints_pos[index-1] = point_pos;
+      //orientations[index-1] = orientation;
       geometry_msgs::Pose pose;
-
-      //pose = feedback->pose;
-      pose.position.x = positions[index-1].x();
-      pose.position.y = positions[index-1].y();
-      pose.position.z = positions[index-1].z();
-
-      pose.orientation.w = orientations[index-1].w();
-      pose.orientation.x = orientations[index-1].x();
-      pose.orientation.y = orientations[index-1].y();
-      pose.orientation.z = orientations[index-1].z();
+      tf::poseTFToMsg(point_pos,pose);
 
       std::stringstream s;
       s << index;
       server->setPose(s.str(),pose);
       server->applyChanges();
-      ROS_INFO_STREAM("Arrow: "<<index <<"; position is updated to:"<<pose.position.x<<" , marker stringname: "<<s.str()<<"; \n");
-      //Q_EMIT point_pose_updated_RViz(marker_name, position,orientation);
-      
+      ROS_INFO_STREAM("Arrow: "<<index <<"; position is updated to:"<<pose.position.x<<" , marker stringname: "<<s.str()<<"; \n");     
     }
 }
-
 
 InteractiveMarkerControl& AddWayPoint::makeArrowControl_default( InteractiveMarker &msg )
 {
@@ -387,69 +353,65 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_details( InteractiveMark
 
 }
 
-void AddWayPoint::makeArrow(const tf::Vector3& point_pos,const tf::Quaternion& point_orient, int count_arrow)//
+void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
 {
         InteractiveMarker int_marker;
-        int_marker.header.frame_id = "/point_pos";
 
-        //static set of the size of the arrow
+        //change this later for the user to add different frame ids for the markers
+        int_marker.header.frame_id = "/base_link";
+
+        //static set of the size of the arrow. Can be changed later for estetics.
         int_marker.scale =0.4;
 
         //move the marker according to the clicked location, there is a problem with this implementation
-        tf::pointTFToMsg(point_pos,int_marker.pose.position);
-        tf::quaternionTFToMsg(point_orient,int_marker.pose.orientation);
-
-        ROS_INFO("begining of make arrow function, count is:%d, positions count:%ld, point position at X:%f \n",count,positions.size(),point_pos.x());
+        tf::poseTFToMsg(point_pos,int_marker.pose);
 
         //check if we have arrow at that location,if not found then add it
-        std::vector<tf::Vector3 >::iterator it_pos  =std::find((positions.begin()),(positions.end()),point_pos);
-        std::vector<tf::Quaternion >::iterator it_orient  =std::find((orientations.begin()),orientations.end(),point_orient);
+        std::vector<tf::Transform >::iterator it_pos  =std::find((waypoints_pos.begin()),(waypoints_pos.end()-1),point_pos);
 
         //print vector before each arrow create just for debuggin remove it later
-        for( int i=0;i<positions.size();i++)
-            ROS_INFO_STREAM( "vecotr at start: \n"<<"x:"<< positions[i].x()<<"; " << positions[i].y()<< "; "<<positions[i].z()<<";\n");
+        // for( int i=0;i<waypoints_pos.size();i++)
+        //     ROS_INFO_STREAM( "vecotr at start: \n"<<"x:"<< waypoints_pos[i].x()<<"; " << positions[i].y()<< "; "<<positions[i].z()<<";\n");
 
-        //check the positions and orientations vector if they are emtpy. If they are we have our first marker. Deleted the check of orientations just experimental
-        if (positions.empty() ) //&& orientations.empty()
+        // //check the positions and orientations vector if they are emtpy. If they are we have our first marker. Deleted the check of orientations just experimental
+        if (waypoints_pos.empty() ) 
         {
 
             ROS_INFO("Adding first arrow!");
             count_arrow++;
             count=count_arrow;
 
-            positions.push_back( point_pos );
-            orientations.push_back( point_orient );
-            Q_EMIT addPointFrom_RViz(point_pos,point_orient,count);
-
-
+            waypoints_pos.push_back( point_pos );
+            //orientations.push_back( point_orient );
+            Q_EMIT addPointFrom_RViz(point_pos,count);
         }
-
-        else if ((it_pos == positions.end()) && (point_pos!=positions[count_arrow]))
+/********************************************Check if we have points in the same position and orientation in the scene***************************************************************************************/   
+        // check if we have points in the same position and orientation in the scene. If we do do not add one.
+        // This might not be necessary doe to the fact that the user might desire the robot to hold on one position
+        // for longer time or to have points with same position but different orientation. 
+        else if ((it_pos == (waypoints_pos.end())) || (point_pos.getOrigin() != waypoints_pos.at(count_arrow-1).getOrigin())) // && (point_pos.getOrigin() != waypoints_pos.at(count_arrow-1).getOrigin()) //(it_pos == waypoints_pos.end()) &&
         {
-
-           //print vector before each arrow create just for debuggin remove it later
-           for( int i=0;i<positions.size();i++)
-            ROS_INFO_STREAM( "vecotr at check if duplicates: \n"<<"x:"<< positions[i].x()<<"; " << positions[i].y()<< "; "<<positions[i].z()<<";\n");
 
             count_arrow++;
             count=count_arrow;
 
-            positions.push_back( point_pos );
-            orientations.push_back( point_orient );
+            waypoints_pos.push_back( point_pos );
+            //orientations.push_back( point_orient );
 
           ROS_INFO("Adding new arrow!");
-          Q_EMIT addPointFrom_RViz(point_pos,point_orient,count);
+          Q_EMIT addPointFrom_RViz(point_pos,count);
         }
     else
     {
             //if we have arrow, ignore adding new one and inform the user that there is arrow (waypoint at that location)
             ROS_INFO("There is already a arrow at that location, can't add new one!!");
     }
+/*******************************************************************************************************************************************************************************************************************/
 
 
         std::stringstream s;
         s << count_arrow;
-        ROS_INFO("end of make arrow, count is:%d, positions count:%ld",count,positions.size());
+        ROS_INFO("end of make arrow, count is:%d, positions count:%ld",count,waypoints_pos.size());
         int_marker.name = s.str();
         int_marker.description = s.str();
 
@@ -487,33 +449,35 @@ void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_co
     menu_handler.apply(*server,int_marker.name);
 
 }
+
 void AddWayPoint::point_deleted(std::string marker_name)
 {
     //ROS_INFO("Info before the delete. Deleting marker: %s, count = %d, vector size: %lu",marker_name,count,positions.size());
 
-    for( int i=0;i<positions.size();i++)
-            ROS_INFO_STREAM( "vecotr before delete: \n"<<"x:"<< positions[i].x()<<"; " << positions[i].y()<< "; "<<positions[i].z()<<";\n");
+    for( int i=0;i<waypoints_pos.size();i++)
+            ROS_INFO_STREAM( "vecotr before delete: \n"<<"x:"<< waypoints_pos[i].getOrigin().x()<<"; " << waypoints_pos[i].getOrigin().y()<< "; "<<waypoints_pos[i].getOrigin().z()<<";\n");
 
 
     //get the index of the selected marker
     int index = atoi( marker_name.c_str() );
     server->erase(marker_name.c_str());
-    positions.erase (positions.begin()+index-1);
-    orientations.erase (orientations.begin()+index-1);
+    waypoints_pos.erase (waypoints_pos.begin()+index-1);
+    //orientations.erase (orientations.begin()+index-1);
 
-    for( int i=0;i<positions.size();i++)
-    ROS_INFO_STREAM( "Vector name:"<<marker_name<<"; vecotr after delete: \n"<<"x:"<< positions[i].x()<<"; " << positions[i].y()<< "; "<<positions[i].z()<<";\n");
+    for( int i=0;i<waypoints_pos.size();i++)
+     ROS_INFO_STREAM( "vecotr before delete: \n"<<"x:"<< waypoints_pos[i].getOrigin().x()<<"; " << waypoints_pos[i].getOrigin().y()<< "; "<<waypoints_pos[i].getOrigin().z()<<";\n");
             //InteractiveMarker int_marker;
            for(int i=index+1; i<=count;i++)
            {
               std::stringstream s;
               s << i;
               server->erase(s.str());
-              makeArrow(positions[i-2],orientations[i-2],(i-1));
+              makeArrow(waypoints_pos[i-2],(i-1));
            }
            count--;
            server->applyChanges();
 }
+
 InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
 {
 
@@ -576,7 +540,7 @@ InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
 void AddWayPoint::makeBox()
 {
         InteractiveMarker int_marker;
-        int_marker.header.frame_id = "/point_pos";
+        int_marker.header.frame_id = "/base_link";
         int_marker.scale = 0.3;
 
         int_marker.pose.position.x = 0.0;
@@ -586,8 +550,9 @@ void AddWayPoint::makeBox()
         int_marker.description = "Interaction Marker";
 
         //positions.push_back( tf::Vector3(0.0,0.0,0.0) );
-        orientation_box = tf::Quaternion(0.0,0.0,0.0,1.0);
-        position_box = tf::Vector3(0.0,0.0,0.0);
+        // orientation_box = tf::Quaternion(0.0,0.0,0.0,1.0);
+        // position_box = tf::Vector3(0.0,0.0,0.0);
+        box_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0));
 
         //button like interactive marker. Detect when we have left click with the mouse and add new arrow then
         int_marker.name = "add_point_button";
@@ -597,6 +562,26 @@ void AddWayPoint::makeBox()
         server->insert( int_marker);
         //add interaction feedback to the markers
         server->setCallback( int_marker.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
+}
+void AddWayPoint::parse_waypoints()
+{
+  geometry_msgs::Pose target_pose;
+  std::vector<geometry_msgs::Pose> waypoints;
+
+  // //we need to change all the positions and orientations vectors to geometry_msgs::Pose, in the next days work on this
+  for(int i=0;i<waypoints_pos.size();i++)
+  {
+
+    tf::poseTFToMsg (waypoints_pos[i], target_pose);
+    //tf::quaternionTFToMsg(orientations[i],target_pose.orientation);
+
+    waypoints.push_back(target_pose);
+    ROS_INFO_STREAM( "positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
+    ROS_INFO_STREAM( "orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
+  }
+
+  Q_EMIT way_points_signal(waypoints);
+
 }
 
 }//end of namespace for add_way_point

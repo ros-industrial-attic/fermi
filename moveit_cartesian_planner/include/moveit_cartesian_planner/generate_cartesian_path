@@ -1,0 +1,12 @@
+#include <ros/ros.h>
+#include <moveit/move_group_interface/move_group.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <boost/function.hpp>
+#include <tf/transform_listener.h>
+#include <tf/transform_datatypes.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/PoseArray.h>
+#include <godel_msgs/RobotScanParameters.h>

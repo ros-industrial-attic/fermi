@@ -5,6 +5,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 #include <tf/tf.h>
+#include <tf/LinearMath/Matrix3x3.h>
+#include <Eigen/Geometry>
 
 #include <ui_path_planning_widget.h>
 
@@ -50,15 +52,17 @@ namespace moveit_cartesian_planner
 		    void initTreeView();
 			void point_deleted_from_UI();
 			void point_added_from_UI();
-			void insert_row(const tf::Vector3& position,const tf::Quaternion& orientation,const int count);
+			void insert_row(const tf::Transform& point_pos,const int count);
 			void remove_row(int marker_nr);
-			void point_pos_updated_slot(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation);
+			void point_pos_updated_slot( const tf::Transform& point_pos, const char* marker_name);
 			void selectedPoint(const QModelIndex& current, const QModelIndex& previous);
 			void treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2); 
+			void parse_waypoint_btn_slot();
 		Q_SIGNALS:
-		    void addPoint( const tf::Vector3 position,const tf::Quaternion orientation);
+		    void addPoint( const tf::Transform point_pos );
 		    void point_del_UI_signal( std::string marker_name);
-		    void point_pos_updated_signal(const char* marker_name, const tf::Vector3& position, const tf::Quaternion& orientation);
+		    void point_pos_updated_signal( const tf::Transform& position, const char* marker_name);
+		    void parse_waypoint_btn_signal();
 			
 		};
 	}
