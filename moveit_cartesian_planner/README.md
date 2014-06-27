@@ -32,4 +32,4 @@ $ source devel/setup.bash
 $roslaunch sia20d_moveit_config demo.launch
 ```
 
-After this step you can add the new panel from the panel tab of the RViz enviroment. Set the Fixed Frame to: base_link, also add InteractiveMarkers to the Displays panel set update topic to /Sphere/update. Now you can play around with the cube and arrow markers. After adding waypoints to the RViz enviroment you can also execute the Cartesian path planner and see the simulated result.
+After this step you can add the new panel from the panel tab of the RViz enviroment. Set the Fixed Frame to: base_link, also add InteractiveMarkers to the Displays panel set update topic to /Sphere/update. Now you can play around with the cube and sphere markers.
