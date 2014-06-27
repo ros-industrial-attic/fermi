@@ -31,7 +31,7 @@ void GenerateCartesianPath::init()
 
 void GenerateCartesianPath::move_to_pose(std::vector<geometry_msgs::Pose> waypoints)
 {
-  //not necessary!!!
+  // not necessary!!!
   // ros::AsyncSpinner spinner(1);
   // spinner.start();
 

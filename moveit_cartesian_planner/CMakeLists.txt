@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 project(moveit_cartesian_planner)
+
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
   interactive_markers
@@ -19,12 +20,6 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 
 include(${QT_USE_FILE})
-
-## We also use Ogre
-include($ENV{ROS_ROOT}/core/rosbuild/FindPkgConfig.cmake)
-pkg_check_modules(OGRE OGRE)
-include_directories( ${OGRE_INCLUDE_DIRS} )
-link_directories( ${OGRE_LIBRARY_DIRS} )
 
 ## I prefer the Qt signals and slots to avoid defining "emit", "slots",
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
@@ -70,14 +65,14 @@ catkin_package(
   rqt_gui_cpp
   visualization_msgs
 )
-catkin_python_setup()
 
 qt4_wrap_cpp(moveit_cartesian_planner_MOCS ${moveit_cartesian_planner_HDRS})
 qt4_wrap_ui(moveit_cartesian_planner_UIS_H ${moveit_cartesian_planner_UIS})
 
 include_directories(${moveit_cartesian_planner_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} ${moveit_cartesian_planner_SRCS} ${moveit_cartesian_planner_MOCS} ${moveit_cartesian_planner_UIS_H}) # ${moveit_cartesian_planner_UIS_H}
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${OGRE_LIBRARY_DIRS} ${moveit_move_group_interface})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${moveit_move_group_interface})
+target_link_libraries(${PROJECT_NAME} yaml-cpp)
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})

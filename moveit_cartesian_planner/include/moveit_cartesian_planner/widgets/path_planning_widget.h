@@ -7,10 +7,13 @@
 #include <tf/tf.h>
 #include <tf/LinearMath/Matrix3x3.h>
 #include <Eigen/Geometry>
+#include <yaml-cpp/yaml.h>
+#include <fstream>
+#include <string.h>
 
 #include <ui_path_planning_widget.h>
 
- #include <moveit_cartesian_planner/add_way_point.h>
+#include <moveit_cartesian_planner/add_way_point.h>
 
 #include <QWidget>
 #include <QTimer>
@@ -23,6 +26,10 @@
 #include <QHeaderView>
 #include <QCompleter>
 #include <QIntValidator>
+#include <QDataStream>
+#include <QString>
+#include <QFileDialog>
+ #include <QMessageBox>
 
 namespace moveit_cartesian_planner
 {
@@ -58,11 +65,16 @@ namespace moveit_cartesian_planner
 			void selectedPoint(const QModelIndex& current, const QModelIndex& previous);
 			void treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2); 
 			void parse_waypoint_btn_slot();
+			void savePointsToFile();
+			void loadPointsFromFile();
+			void clearAllPoints_slot();
 		Q_SIGNALS:
 		    void addPoint( const tf::Transform point_pos );
 		    void point_del_UI_signal( std::string marker_name);
 		    void point_pos_updated_signal( const tf::Transform& position, const char* marker_name);
 		    void parse_waypoint_btn_signal();
+		    void saveToFileBtn_press();
+		    void clearAllPoints_signal();
 			
 		};
 	}

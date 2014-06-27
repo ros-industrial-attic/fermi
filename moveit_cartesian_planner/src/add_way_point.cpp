@@ -1,5 +1,13 @@
 #include <moveit_cartesian_planner/add_way_point.h>
 
+#ifndef DEG2RAD
+#define DEG2RAD(x) ((x)*0.017453293)
+#endif
+
+#ifndef RAD2DEG
+#define RAD2DEG(x) ((x)*57.29578)
+#endif
+
 
 namespace moveit_cartesian_planner
 {
@@ -52,6 +60,8 @@ void AddWayPoint::onInitialize()
 
     connect(widget_,SIGNAL(parse_waypoint_btn_signal()),this,SLOT(parse_waypoints()));
     connect(this,SIGNAL(way_points_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(move_to_pose(std::vector<geometry_msgs::Pose>)));
+    connect(widget_,SIGNAL(saveToFileBtn_press()),this,SLOT(saveWayPointsToFile()));
+    connect(widget_,SIGNAL(clearAllPoints_signal()),this,SLOT(clearAllPoints_RViz()));
 
 
     Q_EMIT initRviz();
@@ -90,11 +100,6 @@ void AddWayPoint::msgCallback(const boost::shared_ptr<const geometry_msgs::Point
              point_out.point.y,
              point_out.point.z);
 
-      // tf::Vector3 point_posit;
-      // tf::Quaternion point_orient;
-      // point_posit = tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z);
-      // //set orientation in the x-axis by default when we have mouse click
-      // point_orient = tf::Quaternion(0.0,0.0,0.0,1.0);
       tf::Transform point_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z));
       makeArrow(point_pos,count);
     }
@@ -519,10 +524,10 @@ InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
 
   Marker marker;
 
-  marker.type = Marker::CUBE;
-  marker.scale.x = msg.scale*0.6;
-  marker.scale.y = msg.scale*0.6;
-  marker.scale.z = msg.scale*0.6;
+  marker.type = Marker::ARROW;
+  marker.scale.x = msg.scale*0.8;
+  marker.scale.y = msg.scale*0.1;
+  marker.scale.z = msg.scale*0.1;
 
 
   //make the markers with interesting color
@@ -582,6 +587,71 @@ void AddWayPoint::parse_waypoints()
 
   Q_EMIT way_points_signal(waypoints);
 
+}
+void AddWayPoint::saveWayPointsToFile()
+{
+
+
+       QString fileName = QFileDialog::getSaveFileName(this,
+         tr("Save Way Points"), ".yaml",
+         tr("Way Points (*.yaml);;All Files (*)"));
+
+      if (fileName.isEmpty())
+         return;
+      else {
+         QFile file(fileName);
+         if (!file.open(QIODevice::WriteOnly)) {
+             QMessageBox::information(this, tr("Unable to open file"),
+                 file.errorString());
+                 file.close();
+             return;
+      }
+
+    YAML::Emitter out;
+    out << YAML::BeginSeq;
+
+    for(int i=0;i<waypoints_pos.size();i++)
+  {
+      out << YAML::BeginMap;
+      std::vector <double> points_vec;
+      points_vec.push_back(waypoints_pos[i].getOrigin().x());
+      points_vec.push_back(waypoints_pos[i].getOrigin().y());
+      points_vec.push_back(waypoints_pos[i].getOrigin().z());
+
+      double rx, ry, rz;
+
+      tf::Matrix3x3 m(waypoints_pos[i].getRotation());
+      m.getRPY(rx, ry, rz,1);
+      points_vec.push_back(RAD2DEG(rx));
+      points_vec.push_back(RAD2DEG(ry));
+      points_vec.push_back(RAD2DEG(rz));
+
+      out << YAML::Key << "name";
+      out << YAML::Value << (i+1);
+      out << YAML::Key << "point";
+      out << YAML::Value << YAML::Flow << points_vec;
+      out << YAML::EndMap;
+  }
+
+
+    out << YAML::EndSeq;
+
+      std::ofstream myfile;
+      myfile.open (fileName.toStdString().c_str());
+      myfile << out.c_str();
+      myfile.close();
+     }
+}
+
+void AddWayPoint::clearAllPoints_RViz()
+{
+  waypoints_pos.clear();
+  //box_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0));
+  server->clear();
+  //delete the waypoints_pos vector
+  count = 0;
+  makeBox();
+  server->applyChanges();
 }
 
 }//end of namespace for add_way_point

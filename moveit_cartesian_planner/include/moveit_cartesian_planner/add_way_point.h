@@ -109,6 +109,8 @@ public Q_SLOTS:
 	void addPointFromUI( const tf::Transform point_pos);
 	void point_pose_updated(const tf::Transform& point_pos, const char* marker_name);
 	void parse_waypoints();
+	void saveWayPointsToFile();
+	void clearAllPoints_RViz();
 Q_SIGNALS:
 	void initRviz();
 	void point_deleted_from_Rviz(int marker_name_nr); 

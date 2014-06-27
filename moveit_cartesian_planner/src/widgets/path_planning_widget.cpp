@@ -44,6 +44,8 @@ namespace moveit_cartesian_planner
       headers<<tr("Point")<<tr("Position (m)")<<tr("Orientation (deg)");
       PoinTtreeModel *model = new PoinTtreeModel(headers,"add_point_button");
       ui_.treeView->setModel(model);
+      ui_.btn_LoadPath->setToolTip(tr("Load way-points from a file"));
+      ui_.btn_SavePath->setToolTip(tr("Save way-points to a file"));
 
 			//connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(point_added_from_UI()));
       connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(point_added_from_UI()));
@@ -51,6 +53,10 @@ namespace moveit_cartesian_planner
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
       connect(ui_.treeView->model(),SIGNAL(dataChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex&,const QModelIndex&)));
       connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(parse_waypoint_btn_slot()));
+      connect(ui_.btn_LoadPath,SIGNAL(clicked()),this,SLOT(loadPointsFromFile()));
+      connect(ui_.btn_SavePath,SIGNAL(clicked()),this,SLOT(savePointsToFile()));
+      connect(ui_.btn_ClearAllPoints,SIGNAL(clicked()),this,SLOT(clearAllPoints_slot()));
+      
 		}
     void PathPlanningWidget::pointRange()
     {
@@ -142,9 +148,22 @@ namespace moveit_cartesian_planner
       double rx,ry,rz;
       tf::Matrix3x3 m(point_pos.getRotation());
       m.getRPY(rx, ry, rz,1);
+
+      if(count == 0)
+      {
+        model->insertRow(count,model->index(count, 0));
+
+        model->setData(model->index(0,0,QModelIndex()),QVariant("add_point_button"),Qt::EditRole);
+        model->setData(model->index(0,1,QModelIndex()),QVariant("0;0;0;"),Qt::EditRole);
+        model->setData(model->index(0,2,QModelIndex()),QVariant("0;0;0;"),Qt::EditRole);
+        //update the validator for the lineEdit Point
+        pointRange();
+      }
+      else
+      {
       //ROS_INFO_STREAM("Quartenion at add_row: "<<orientation.x()<<"; "<<orientation.y()<<"; "<<orientation.z()<<"; "<<orientation.w()<<";");
 
-       if((!model->insertRow(count,model->index(count, 0))) && count==0)
+       if(!model->insertRow(count,model->index(count, 0)))  //&& count==0
        {
          return;
        }
@@ -198,6 +217,7 @@ namespace moveit_cartesian_planner
       model->setData(model->index(2, 2, chldind_orient), QVariant(orient_z), Qt::EditRole);
 //****************************************************************************************************************************
       pointRange();
+    }
 
     }
     void PathPlanningWidget::remove_row(int marker_nr)
@@ -287,7 +307,6 @@ namespace moveit_cartesian_planner
       }
       else if(((index.parent().parent()) != QModelIndex()) && (index.parent().parent().row()!=0))
       {
-          //ROS_INFO("I am editing a child item");
           QModelIndex main_root = index.parent().parent();
           std::stringstream s;
           s<<main_root.row();
@@ -328,5 +347,82 @@ namespace moveit_cartesian_planner
       Q_EMIT parse_waypoint_btn_signal();
     }
 
-	}
+void PathPlanningWidget::loadPointsFromFile()
+{
+
+   QString fileName = QFileDialog::getOpenFileName(this,
+         tr("Open Way Points File"), "",
+         tr("Way Points (*.yaml);;All Files (*)"));
+
+      if (fileName.isEmpty())
+         return;
+     else {
+
+         QFile file(fileName);
+
+         if (!file.open(QIODevice::ReadOnly)) {
+             QMessageBox::information(this, tr("Unable to open file"),
+                 file.errorString());
+             file.close();
+             return;
+         }
+          //clear all the scene before loading all the new points from the file!!
+          clearAllPoints_slot();
+
+          ROS_INFO_STREAM("Opening the file: "<<fileName.toStdString());
+          std::ifstream fin(fileName.toStdString().c_str());
+
+        YAML::Node doc;
+    #ifdef HAVE_NEW_YAMLCPP
+        doc = YAML::Load(fin);
+    #else
+        YAML::Parser parser(fin);
+        parser.GetNextDocument(doc);
+    #endif
+
+        for (size_t i = 0; i < doc.size(); i++) {
+          std::string name;
+          geometry_msgs::Pose pose;
+          tf::Transform pose_tf;
+         
+          double x,y,z,rx, ry, rz;
+          doc[i]["name"] >> name;
+          doc[i]["point"][0] >> x;
+          doc[i]["point"][1] >> y;
+          doc[i]["point"][2] >> z;
+          doc[i]["point"][3] >> rx;
+          doc[i]["point"][4] >> ry;
+          doc[i]["point"][5] >> rz;
+
+          rx = DEG2RAD(rx);
+          ry = DEG2RAD(ry);
+          rz = DEG2RAD(rz);
+
+          pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
+
+
+          addPoint(pose_tf);
+        }
+      }
+
+    }
+    void PathPlanningWidget::savePointsToFile()
+    {
+
+      Q_EMIT saveToFileBtn_press();
+
+    }
+    void PathPlanningWidget::clearAllPoints_slot()
+    {
+      //clear the treeView
+      QAbstractItemModel *model = ui_.treeView->model();
+      model->removeRows(0,model->rowCount());
+      insert_row(tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0)),0);
+      pointRange();
+
+      Q_EMIT clearAllPoints_signal();
+    }
+
+  }
 }
+
