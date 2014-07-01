@@ -17,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_1">
       <attribute name="title">
@@ -31,7 +31,7 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
+       <item row="3" column="3">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>Point</string>
@@ -114,7 +114,7 @@
          </layout>
         </widget>
        </item>
-       <item row="1" column="0" colspan="3">
+       <item row="1" column="0" colspan="4">
         <widget class="QTreeView" name="treeView"/>
        </item>
        <item row="2" column="0" colspan="2">
@@ -132,13 +132,13 @@
         </widget>
        </item>
        <item row="8" column="1">
-        <widget class="QPushButton" name="btn_ExportPath">
+        <widget class="QPushButton" name="btn_SavePath">
          <property name="text">
-          <string>Export Path</string>
+          <string>Save Path</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
+       <item row="4" column="3">
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
           <widget class="QLineEdit" name="txtPointName"/>
@@ -152,15 +152,37 @@
          </item>
         </layout>
        </item>
+       <item row="4" column="2">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="8" column="3">
+        <widget class="QPushButton" name="btn_ClearAllPoints">
+         <property name="text">
+          <string>Clear All Points</string>
+         </property>
+        </widget>
+       </item>
       </layout>
       <zorder>label</zorder>
       <zorder>btnAddPoint</zorder>
       <zorder>label_2</zorder>
       <zorder>treeView</zorder>
       <zorder>btn_LoadPath</zorder>
-      <zorder>btn_ExportPath</zorder>
+      <zorder>btn_SavePath</zorder>
       <zorder>FormWidgetGridLayout</zorder>
       <zorder>label_4</zorder>
+      <zorder>horizontalSpacer</zorder>
+      <zorder>btn_ClearAllPoints</zorder>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -171,12 +193,25 @@
         <rect>
          <x>10</x>
          <y>30</y>
-         <width>98</width>
+         <width>171</width>
          <height>27</height>
         </rect>
        </property>
        <property name="text">
-        <string>TargetPoint</string>
+        <string>Simulate Cartesian Path</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_ReadTrajectory">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>110</y>
+         <width>171</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>TestTrajectory Read</string>
        </property>
       </widget>
      </widget>

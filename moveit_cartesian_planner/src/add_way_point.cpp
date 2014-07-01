@@ -1,6 +1,16 @@
 #include <moveit_cartesian_planner/add_way_point.h>
 
+#ifndef DEG2RAD
+#define DEG2RAD(x) ((x)*0.017453293)
+#endif
 
+#ifndef RAD2DEG
+#define RAD2DEG(x) ((x)*57.29578)
+#endif
+
+//ToDo: add constans for marker creating, control, color and other visualizations!!!!
+//ToDo: way-points are redrawn all the time on update, while the interactive marker is not, resolve this issue
+//so that the way-points are not redrawn all the time. The user should see all components of the scene all the time
 namespace moveit_cartesian_planner
 {
 
@@ -21,14 +31,10 @@ AddWayPoint::~AddWayPoint()
 
 void AddWayPoint::onInitialize()
 {
-    server.reset( new interactive_markers::InteractiveMarkerServer("Sphere") );
+    server.reset( new interactive_markers::InteractiveMarkerServer("Arrow") );
     ROS_INFO("initializing..");
     menu_handler.insert( "Delete", boost::bind( &AddWayPoint::processFeedback, this, _1 ) );
     menu_handler.setCheckState(menu_handler.insert( "Fine adjustment", boost::bind( &AddWayPoint::processFeedback, this, _1 )),interactive_markers::MenuHandler::UNCHECKED);
-
-    //reserve for the size of the vector, just a number I have chosen
-    // positions.reserve(255);
-    // orientations.reserve(255);
 
     count = 0;
     makeBox();
@@ -52,7 +58,8 @@ void AddWayPoint::onInitialize()
 
     connect(widget_,SIGNAL(parse_waypoint_btn_signal()),this,SLOT(parse_waypoints()));
     connect(this,SIGNAL(way_points_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(move_to_pose(std::vector<geometry_msgs::Pose>)));
-
+    connect(widget_,SIGNAL(saveToFileBtn_press()),this,SLOT(saveWayPointsToFile()));
+    connect(widget_,SIGNAL(clearAllPoints_signal()),this,SLOT(clearAllPoints_RViz()));
 
     Q_EMIT initRviz();
 
@@ -90,11 +97,6 @@ void AddWayPoint::msgCallback(const boost::shared_ptr<const geometry_msgs::Point
              point_out.point.y,
              point_out.point.z);
 
-      // tf::Vector3 point_posit;
-      // tf::Quaternion point_orient;
-      // point_posit = tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z);
-      // //set orientation in the x-axis by default when we have mouse click
-      // point_orient = tf::Quaternion(0.0,0.0,0.0,1.0);
       tf::Transform point_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z));
       makeArrow(point_pos,count);
     }
@@ -122,10 +124,10 @@ void AddWayPoint::addPointFromUI( const tf::Transform point_pos)
 void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
 
-  std::ostringstream s;
+  // std::ostringstream s;
 
-  s<<"Feedback fom marker '" << feedback->marker_name << "' "
-                             << "/ control '"<<feedback->control_name << "'";
+  // s<<"Feedback fom marker '" << feedback->marker_name << "' "
+  //                            << "/ control '"<<feedback->control_name << "'";
   switch ( feedback->event_type )
   {
     case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
@@ -133,10 +135,9 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
 
     tf::Transform point_pos;
     tf::poseMsgToTF(feedback->pose,point_pos);
-    //ROS_INFO_STREAM("see if point works:"<<point_pos.getOrigin().x());
 
     makeArrow(point_pos,count);
-    server->applyChanges();
+    //server->applyChanges();
     break;
     }
 
@@ -206,7 +207,7 @@ void AddWayPoint::point_pose_updated(const tf::Transform& point_pos, const char*
         std::stringstream s;
         s << "add_point_button";
         server->setPose(s.str(),pose);
-        server->applyChanges();
+        //server->applyChanges();
         ROS_INFO("Cube position is updated, %f:",box_pos.getOrigin().x());
 
       }
@@ -220,14 +221,13 @@ void AddWayPoint::point_pose_updated(const tf::Transform& point_pos, const char*
       }
   
       waypoints_pos[index-1] = point_pos;
-      //orientations[index-1] = orientation;
       geometry_msgs::Pose pose;
       tf::poseTFToMsg(point_pos,pose);
 
       std::stringstream s;
       s << index;
       server->setPose(s.str(),pose);
-      server->applyChanges();
+      //server->applyChanges();
       ROS_INFO_STREAM("Arrow: "<<index <<"; position is updated to:"<<pose.position.x<<" , marker stringname: "<<s.str()<<"; \n");     
     }
 }
@@ -250,6 +250,12 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_default( InteractiveMark
   marker.color.b = 1.0;
   marker.color.a = 1.0;
 
+  InteractiveMarkerControl control_move3d;
+  control_move3d.interaction_mode = InteractiveMarkerControl::MOVE_ROTATE_3D;
+  control_move3d.name = "move";
+  control_move3d.markers.push_back( marker );
+  msg.controls.push_back( control_move3d );
+
   //make a menu control for the Arrow. This could be used for the user 
   //to delte the arrow on which the mouse pointer is on
   control_menu.interaction_mode = InteractiveMarkerControl::MENU;
@@ -257,14 +263,8 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_default( InteractiveMark
   msg.controls.push_back( control_menu );
   control_menu.markers.push_back( marker );
 
-  InteractiveMarkerControl control_move3d;
-  control_move3d.interaction_mode = InteractiveMarkerControl::MOVE_ROTATE_3D;
-  control_move3d.name = "move";
-  control_move3d.markers.push_back( marker );
-  msg.controls.push_back( control_move3d );
-
   server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
-  server->applyChanges();
+  //server->applyChanges();
 
   return msg.controls.back();
 
@@ -347,7 +347,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_details( InteractiveMark
   msg.controls.push_back( control_view_details );
 
   server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
-  server->applyChanges();
+  //server->applyChanges();
 
   return msg.controls.back();
 
@@ -407,8 +407,6 @@ void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
             ROS_INFO("There is already a arrow at that location, can't add new one!!");
     }
 /*******************************************************************************************************************************************************************************************************************/
-
-
         std::stringstream s;
         s << count_arrow;
         ROS_INFO("end of make arrow, count is:%d, positions count:%ld",count,waypoints_pos.size());
@@ -445,15 +443,13 @@ void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_co
     //   int_marker.pose = pose;
 
     server->insert( int_marker);
-    server->applyChanges();
+    //server->applyChanges();
     menu_handler.apply(*server,int_marker.name);
 
 }
 
 void AddWayPoint::point_deleted(std::string marker_name)
 {
-    //ROS_INFO("Info before the delete. Deleting marker: %s, count = %d, vector size: %lu",marker_name,count,positions.size());
-
     for( int i=0;i<waypoints_pos.size();i++)
             ROS_INFO_STREAM( "vecotr before delete: \n"<<"x:"<< waypoints_pos[i].getOrigin().x()<<"; " << waypoints_pos[i].getOrigin().y()<< "; "<<waypoints_pos[i].getOrigin().z()<<";\n");
 
@@ -462,7 +458,6 @@ void AddWayPoint::point_deleted(std::string marker_name)
     int index = atoi( marker_name.c_str() );
     server->erase(marker_name.c_str());
     waypoints_pos.erase (waypoints_pos.begin()+index-1);
-    //orientations.erase (orientations.begin()+index-1);
 
     for( int i=0;i<waypoints_pos.size();i++)
      ROS_INFO_STREAM( "vecotr before delete: \n"<<"x:"<< waypoints_pos[i].getOrigin().x()<<"; " << waypoints_pos[i].getOrigin().y()<< "; "<<waypoints_pos[i].getOrigin().z()<<";\n");
@@ -480,50 +475,13 @@ void AddWayPoint::point_deleted(std::string marker_name)
 
 InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
 {
-
-  InteractiveMarkerControl control;
-  control.always_visible = true;
-  //control.interaction_mode = InteractiveMarkerControl::BUTTON;
-
-  control.orientation.w = 1;
-  control.orientation.x = 1;
-  control.orientation.y = 0;
-  control.orientation.z = 0;  
-  control.orientation_mode = InteractiveMarkerControl::VIEW_FACING;
-  control.interaction_mode = InteractiveMarkerControl::MOVE_PLANE;
-  //control.independent_marker_orientation = true;
-  msg.controls.push_back( control );
-
-  control.orientation.w = 1;
-  control.orientation.x = 0;
-  control.orientation.y = 1;
-  control.orientation.z = 0;  
-  control.orientation_mode = InteractiveMarkerControl::INHERIT;
-  control.interaction_mode = InteractiveMarkerControl::MOVE_PLANE;
-  //control.independent_marker_orientation = true;
-  msg.controls.push_back( control );
-
-  control.orientation.w = 1;
-  control.orientation.x = 0;
-  control.orientation.y = 0;
-  control.orientation.z = 1;  
-  control.orientation_mode = InteractiveMarkerControl::INHERIT;
-  control.interaction_mode = InteractiveMarkerControl::MOVE_PLANE;
-  //control.independent_marker_orientation = true;
-
-  control.name = "move";
-  msg.controls.push_back( control );
-
-  control.interaction_mode = InteractiveMarkerControl::BUTTON;
-  control.name = "button_interaction";
-
+  //define a marker
   Marker marker;
 
-  marker.type = Marker::CUBE;
-  marker.scale.x = msg.scale*0.6;
-  marker.scale.y = msg.scale*0.6;
-  marker.scale.z = msg.scale*0.6;
-
+  marker.type = Marker::ARROW;
+  marker.scale.x = msg.scale*0.9;
+  marker.scale.y = msg.scale*0.1;
+  marker.scale.z = msg.scale*0.1;
 
   //make the markers with interesting color
   marker.color.r = 0.80;
@@ -531,8 +489,94 @@ InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
   marker.color.b = 0.1;
   marker.color.a = 1.0;
 
+  // //control for button interaction
+  InteractiveMarkerControl control;
+  control.always_visible = true;
+
+  // control.orientation.w = 1;
+  // control.orientation.x = 1;
+  // control.orientation.y = 0;
+  // control.orientation.z = 0;  
+  // control.orientation_mode = InteractiveMarkerControl::VIEW_FACING;
+  // control.interaction_mode = InteractiveMarkerControl::MOVE_PLANE;
+  // msg.controls.push_back( control );
+
+  // control.orientation.w = 1;
+  // control.orientation.x = 0;
+  // control.orientation.y = 1;
+  // control.orientation.z = 0;  
+  // control.orientation_mode = InteractiveMarkerControl::INHERIT;
+  // control.interaction_mode = InteractiveMarkerControl::MOVE_PLANE;
+  // //control.independent_marker_orientation = true;
+  // msg.controls.push_back( control );
+
+  // control.orientation.w = 1;
+  // control.orientation.x = 0;
+  // control.orientation.y = 0;
+  // control.orientation.z = 1;  
+  // control.orientation_mode = InteractiveMarkerControl::INHERIT;
+  // control.interaction_mode = InteractiveMarkerControl::MOVE_PLANE;
+
+  // control.name = "move";
+  // msg.controls.push_back( control );
+
+  control.interaction_mode = InteractiveMarkerControl::BUTTON;
+  control.name = "button_interaction";
+
   control.markers.push_back( marker );
   msg.controls.push_back( control );
+
+
+  /***************************************************************************************************/
+  InteractiveMarkerControl control_view_details;
+//*************rotate and move around the x-axis********************
+  control_view_details.orientation.w = 1;
+  control_view_details.orientation.x = 1;
+  control_view_details.orientation.y = 0;
+  control_view_details.orientation.z = 0;
+
+  control_view_details.name = "rotate_x";
+  control_view_details.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  msg.controls.push_back( control_view_details );
+
+  control_view_details.name = "move_x";
+  control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  msg.controls.push_back( control_view_details );
+//*****************************************************************
+
+//*************rotate and move around the z-axis********************
+  control_view_details.orientation.w = 1;
+  control_view_details.orientation.x = 0;
+  control_view_details.orientation.y = 1;
+  control_view_details.orientation.z = 0;
+
+  control_view_details.name = "rotate_z";
+  control_view_details.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  msg.controls.push_back( control_view_details );
+
+  control_view_details.name = "move_z";
+  control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  msg.controls.push_back( control_view_details );
+//*****************************************************************
+
+
+//*************rotate and move around the y-axis********************
+  control_view_details.orientation.w = 1;
+  control_view_details.orientation.x = 0;
+  control_view_details.orientation.y = 0;
+  control_view_details.orientation.z = 1;
+
+  control_view_details.name = "rotate_y";
+  control_view_details.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  msg.controls.push_back( control_view_details );
+
+  control_view_details.name = "move_y";
+  control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  msg.controls.push_back( control_view_details );
+//*****************************************************************
+  control_view_details.markers.push_back( marker );
+  msg.controls.push_back( control_view_details );
+  /***************************************************************************************************/
 
   return msg.controls.back();
 }
@@ -549,9 +593,6 @@ void AddWayPoint::makeBox()
 
         int_marker.description = "Interaction Marker";
 
-        //positions.push_back( tf::Vector3(0.0,0.0,0.0) );
-        // orientation_box = tf::Quaternion(0.0,0.0,0.0,1.0);
-        // position_box = tf::Vector3(0.0,0.0,0.0);
         box_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0));
 
         //button like interactive marker. Detect when we have left click with the mouse and add new arrow then
@@ -582,6 +623,70 @@ void AddWayPoint::parse_waypoints()
 
   Q_EMIT way_points_signal(waypoints);
 
+}
+void AddWayPoint::saveWayPointsToFile()
+{
+
+
+       QString fileName = QFileDialog::getSaveFileName(this,
+         tr("Save Way Points"), ".yaml",
+         tr("Way Points (*.yaml);;All Files (*)"));
+
+      if (fileName.isEmpty())
+         return;
+      else {
+         QFile file(fileName);
+         if (!file.open(QIODevice::WriteOnly)) {
+             QMessageBox::information(this, tr("Unable to open file"),
+                 file.errorString());
+                 file.close();
+             return;
+      }
+
+    YAML::Emitter out;
+    out << YAML::BeginSeq;
+
+    for(int i=0;i<waypoints_pos.size();i++)
+  {
+      out << YAML::BeginMap;
+      std::vector <double> points_vec;
+      points_vec.push_back(waypoints_pos[i].getOrigin().x());
+      points_vec.push_back(waypoints_pos[i].getOrigin().y());
+      points_vec.push_back(waypoints_pos[i].getOrigin().z());
+
+      double rx, ry, rz;
+
+      tf::Matrix3x3 m(waypoints_pos[i].getRotation());
+      m.getRPY(rx, ry, rz,1);
+      points_vec.push_back(RAD2DEG(rx));
+      points_vec.push_back(RAD2DEG(ry));
+      points_vec.push_back(RAD2DEG(rz));
+
+      out << YAML::Key << "name";
+      out << YAML::Value << (i+1);
+      out << YAML::Key << "point";
+      out << YAML::Value << YAML::Flow << points_vec;
+      out << YAML::EndMap;
+  }
+
+
+    out << YAML::EndSeq;
+
+      std::ofstream myfile;
+      myfile.open (fileName.toStdString().c_str());
+      myfile << out.c_str();
+      myfile.close();
+     }
+}
+
+void AddWayPoint::clearAllPoints_RViz()
+{
+  waypoints_pos.clear();
+  server->clear();
+  //delete the waypoints_pos vector
+  count = 0;
+  makeBox();
+  server->applyChanges();
 }
 
 }//end of namespace for add_way_point

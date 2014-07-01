@@ -26,11 +26,11 @@ class GenerateCartesianPath: public QObject
 {
 Q_OBJECT
 public:
-	static const double PLANNING_TIME;
-	static const double WAIT_MSG_DURATION;
-	static const double EEF_STEP;
-	static const double MIN_TRAJECTORY_TIME_STEP;
-	static const double MIN_JOINT_VELOCITY;
+	// static const double PLANNING_TIME;
+	// static const double WAIT_MSG_DURATION;
+	// static const double EEF_STEP;
+	// static const double MIN_TRAJECTORY_TIME_STEP;
+	// static const double MIN_JOINT_VELOCITY;
 public:
 	GenerateCartesianPath(QObject* parent = 0);
 	virtual ~GenerateCartesianPath();
