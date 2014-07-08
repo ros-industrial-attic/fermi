@@ -25,6 +25,11 @@
 class GenerateCartesianPath: public QObject
 {
 Q_OBJECT
+private:
+	// robot_model_loader::RobotModelLoader robot_model_loader;
+	// moveit::core::RobotModelPtr kinematic_model;
+	// moveit::core::RobotStatePtr kinematic_state;
+	// const moveit::core::JointModelGroup* joint_model_group;
 public:
 	// static const double PLANNING_TIME;
 	// static const double WAIT_MSG_DURATION;
@@ -37,9 +42,16 @@ public:
 	void init();
 public Q_SLOTS:
 	void move_to_pose(std::vector<geometry_msgs::Pose> waypoints);
+	void checkWayPointValidity(const geometry_msgs::Pose& waypoints,const int marker_name);
+Q_SIGNALS:
+	void wayPointOutOfIK(int point_number, int out_of_range); 
 protected:
-
-protected:
+	//figure out how to initialize all of these parameters in the init function
+	robot_model_loader::RobotModelLoader robot_model_loader;
+	moveit::core::RobotModelPtr kinematic_model;
+	moveit::core::RobotStatePtr kinematic_state;
+	const moveit::core::JointModelGroup* joint_model_group;
+	//std::vector<double> joint_values;
 
 public:
 

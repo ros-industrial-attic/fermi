@@ -111,6 +111,7 @@ public Q_SLOTS:
 	void parse_waypoints();
 	void saveWayPointsToFile();
 	void clearAllPoints_RViz();
+	void wayPointOutOfIK_slot(int point_number,int out);
 Q_SIGNALS:
 	void initRviz();
 	void point_deleted_from_Rviz(int marker_name_nr); 
@@ -118,12 +119,12 @@ Q_SIGNALS:
 	void point_pose_updated_RViz(const tf::Transform& point_pos, const char* marker_name);
 	void cartesian_waypoints(const std::vector<tf::Transform > point_pos);
 	void way_points_signal(std::vector<geometry_msgs::Pose> waypoints);
+	void onUpdatePosCheckIkVadility(const geometry_msgs::Pose& waypoint,const int point_number);
 
 
 protected:
     QWidget *widget_;
     QObject *path_generate;
-
 };
 } //end of namespace moveit_cartesian_planner
 
