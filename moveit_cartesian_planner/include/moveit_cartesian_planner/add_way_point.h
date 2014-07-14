@@ -66,7 +66,7 @@ public:
 	virtual void processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
 
 	virtual void makeArrow(const tf::Transform& point_pos,int count_arrow);//
-	virtual void makeBox();
+	virtual void makeInteractiveMarker();
 
 	virtual void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr);
 
@@ -75,12 +75,12 @@ public:
 
 private:
 	//create controls for each different marker. Here we have control for the defaulot starting control ArrowMarkers(the cartesian way points)
-	InteractiveMarkerControl& makeArrowControl_default(InteractiveMarker &msg );
+	InteractiveMarkerControl& makeArrowControlDefault(InteractiveMarker &msg );
 
-	InteractiveMarkerControl& makeArrowControl_details(InteractiveMarker &msg );
+	InteractiveMarkerControl& makeArrowControlDetails(InteractiveMarker &msg );
 
 	//the box control can be used as a pointer to a certain 3D location and when clicked it will add a arrow to that location
-	InteractiveMarkerControl& makeBoxControl( InteractiveMarker &msg_box );
+	InteractiveMarkerControl& makeInteractiveMarkerControl( InteractiveMarker &msg_box );
 
 	virtual void changeMarkerControlAndPose(std::string marker_name,bool set_control);
 
@@ -98,37 +98,33 @@ private:
     tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
     ros::NodeHandle n_;
     std::string target_frame_;
-    std::string markers_frame;
     
-
 protected Q_SLOTS:
 	// rviz::Panel virtual functions
 	virtual void load(const rviz::Config& config);
 	virtual void save(rviz::Config config) const;
 public Q_SLOTS:
-	virtual void point_deleted(std::string marker_name); 
+	virtual void pointDeleted(std::string marker_name); 
 	void addPointFromUI( const tf::Transform point_pos);
-	void point_pose_updated(const tf::Transform& point_pos, const char* marker_name);
-	void parse_waypoints();
+	void pointPoseUpdated(const tf::Transform& point_pos, const char* marker_name);
+	void parseWayPoints();
 	void saveWayPointsToFile();
-	void clearAllPoints_RViz();
+	void clearAllPointsRViz();
 	void wayPointOutOfIK_slot(int point_number,int out);
 	void getRobotModelFrame_slot(const std::string robot_model_frame);
 
 Q_SIGNALS:
 	void initRviz();
-	void point_deleted_from_Rviz(int marker_name_nr); 
-	void addPointFrom_RViz(const tf::Transform& point_pos, const int count);
-	void point_pose_updated_RViz(const tf::Transform& point_pos, const char* marker_name);
-	void cartesian_waypoints(const std::vector<tf::Transform > point_pos);
-	void way_points_signal(std::vector<geometry_msgs::Pose> waypoints);
-	void onUpdatePosCheckIkVadility(const geometry_msgs::Pose& waypoint,const int point_number);
+	void pointDeleteRviz(int marker_name_nr); 
+	void addPointRViz(const tf::Transform& point_pos, const int count);
+	void pointPoseUpdatedRViz(const tf::Transform& point_pos, const char* marker_name);
+	void wayPoints_signal(std::vector<geometry_msgs::Pose> waypoints);
+	void onUpdatePosCheckIkValidity(const geometry_msgs::Pose& waypoint,const int point_number);
 
 
 protected:
     QWidget *widget_;
     QObject *path_generate;
-    //void timerEvent(QTimerEvent *event);
 };
 } //end of namespace moveit_cartesian_planner
 

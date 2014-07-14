@@ -57,22 +57,22 @@ namespace moveit_cartesian_planner
 			void pointRange();
 		protected Q_SLOTS:
 		    void initTreeView();
-			void point_deleted_from_UI();
-			void point_added_from_UI();
-			void insert_row(const tf::Transform& point_pos,const int count);
-			void remove_row(int marker_nr);
-			void point_pos_updated_slot( const tf::Transform& point_pos, const char* marker_name);
+			void pointDeletedUI();
+			void pointAddUI();
+			void insertRow(const tf::Transform& point_pos,const int count);
+			void removeRow(int marker_nr);
+			void pointPosUpdated_slot( const tf::Transform& point_pos, const char* marker_name);
 			void selectedPoint(const QModelIndex& current, const QModelIndex& previous);
 			void treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2); 
-			void parse_waypoint_btn_slot();
+			void parseWayPointBtn_slot();
 			void savePointsToFile();
 			void loadPointsFromFile();
 			void clearAllPoints_slot();
 		Q_SIGNALS:
 		    void addPoint( const tf::Transform point_pos );
-		    void point_del_UI_signal( std::string marker_name);
-		    void point_pos_updated_signal( const tf::Transform& position, const char* marker_name);
-		    void parse_waypoint_btn_signal();
+		    void pointDelUI_signal( std::string marker_name);
+		    void pointPosUpdated_signal( const tf::Transform& position, const char* marker_name);
+		    void parseWayPointBtn_signal();
 		    void saveToFileBtn_press();
 		    void clearAllPoints_signal();
 			

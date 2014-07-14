@@ -42,17 +42,17 @@ namespace moveit_cartesian_planner
       ui_.txtPointName->setText("0");
       QStringList headers;
       headers<<tr("Point")<<tr("Position (m)")<<tr("Orientation (deg)");
-      PoinTtreeModel *model = new PoinTtreeModel(headers,"add_point_button");
+      PointTreeModel *model = new PointTreeModel(headers,"add_point_button");
       ui_.treeView->setModel(model);
       ui_.btn_LoadPath->setToolTip(tr("Load way-points from a file"));
       ui_.btn_SavePath->setToolTip(tr("Save way-points to a file"));
 
-			//connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(point_added_from_UI()));
-      connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(point_added_from_UI()));
-      connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(point_deleted_from_UI()));
+			//connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
+      connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
+      connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(pointDeletedUI()));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
       connect(ui_.treeView->model(),SIGNAL(dataChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex&,const QModelIndex&)));
-      connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(parse_waypoint_btn_slot()));
+      connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(parseWayPointBtn_slot()));
       connect(ui_.btn_LoadPath,SIGNAL(clicked()),this,SLOT(loadPointsFromFile()));
       connect(ui_.btn_SavePath,SIGNAL(clicked()),this,SLOT(savePointsToFile()));
       connect(ui_.btn_ClearAllPoints,SIGNAL(clicked()),this,SLOT(clearAllPoints_slot()));
@@ -88,7 +88,7 @@ namespace moveit_cartesian_planner
       else 
         ui_.txtPointName->setText(QString::number(current.parent().parent().row()));
     }
-		void PathPlanningWidget::point_added_from_UI()
+		void PathPlanningWidget::pointAddUI()
 		{
 
         double x,y,z,rx,ry,rz;
@@ -124,7 +124,7 @@ namespace moveit_cartesian_planner
 
         pointRange();         
 		}
-    void PathPlanningWidget::point_deleted_from_UI()
+    void PathPlanningWidget::pointDeletedUI()
     {
         std::string marker_name;
         QString qtPointNr = ui_.txtPointName->text();
@@ -134,12 +134,12 @@ namespace moveit_cartesian_planner
 
         if(strcmp(marker_name.c_str(),"0")!=0)
         {
-          remove_row(marker_nr);
+          removeRow(marker_nr);
           pointRange();
-          Q_EMIT point_del_UI_signal(marker_name.c_str());
+          Q_EMIT pointDelUI_signal(marker_name.c_str());
         }
     }
-    void PathPlanningWidget::insert_row(const tf::Transform& point_pos,const int count)
+    void PathPlanningWidget::insertRow(const tf::Transform& point_pos,const int count)
     {
 
       ROS_INFO("inserting new row in the TreeView");
@@ -221,7 +221,7 @@ namespace moveit_cartesian_planner
     }
 
     }
-    void PathPlanningWidget::remove_row(int marker_nr)
+    void PathPlanningWidget::removeRow(int marker_nr)
     {
         QAbstractItemModel *model = ui_.treeView->model();
 
@@ -238,7 +238,7 @@ namespace moveit_cartesian_planner
         pointRange();
     }
 
-    void PathPlanningWidget::point_pos_updated_slot(const tf::Transform& point_pos, const char* marker_name)
+    void PathPlanningWidget::pointPosUpdated_slot(const tf::Transform& point_pos, const char* marker_name)
     {
 
         QAbstractItemModel *model = ui_.treeView->model();
@@ -343,13 +343,13 @@ namespace moveit_cartesian_planner
             // ROS_INFO_STREAM("Quartenion at TreeView Edit: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
             tf::Transform point_pos =  tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),p);
 
-            Q_EMIT point_pos_updated_signal(point_pos,temp_str.c_str());
+            Q_EMIT pointPosUpdated_signal(point_pos,temp_str.c_str());
       }
 
     }
-    void PathPlanningWidget::parse_waypoint_btn_slot()
+    void PathPlanningWidget::parseWayPointBtn_slot()
     {
-      Q_EMIT parse_waypoint_btn_signal();
+      Q_EMIT parseWayPointBtn_signal();
     }
 
 void PathPlanningWidget::loadPointsFromFile()
@@ -422,7 +422,7 @@ void PathPlanningWidget::loadPointsFromFile()
       //clear the treeView
       QAbstractItemModel *model = ui_.treeView->model();
       model->removeRows(0,model->rowCount());
-      insert_row(tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0)),0);
+      insertRow(tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0)),0);
       pointRange();
 
       Q_EMIT clearAllPoints_signal();

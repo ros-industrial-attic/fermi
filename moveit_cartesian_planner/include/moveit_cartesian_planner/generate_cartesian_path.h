@@ -23,7 +23,7 @@ public:
 	virtual ~GenerateCartesianPath();
 	void init();
 public Q_SLOTS:
-	void move_to_pose(std::vector<geometry_msgs::Pose> waypoints);
+	void moveToPose(std::vector<geometry_msgs::Pose> waypoints);
 	void checkWayPointValidity(const geometry_msgs::Pose& waypoints,const int marker_name);
 	void initRviz_done();
 Q_SIGNALS:
@@ -34,10 +34,6 @@ protected:
 	moveit::core::RobotModelPtr kinematic_model;
 	moveit::core::RobotStatePtr kinematic_state;
 	const moveit::core::JointModelGroup* joint_model_group;
-
-public:
-	//std::string getRobotModelFrame();
-
 };
 
 #endif // GENERATE_CARTESIAN_PATH_H_

@@ -3,7 +3,7 @@
 #include <moveit_cartesian_planner/point_tree_item.h>
 #include <moveit_cartesian_planner/point_tree_model.h>
 
-PoinTtreeModel::PoinTtreeModel(const QStringList &headers, const QString &data,
+PointTreeModel::PointTreeModel(const QStringList &headers, const QString &data,
                      QObject *parent)
     : QAbstractItemModel(parent)
 {
@@ -17,17 +17,17 @@ PoinTtreeModel::PoinTtreeModel(const QStringList &headers, const QString &data,
     setupModelData(data.split(QString("\n")), rootItem);
 }
 
-PoinTtreeModel::~PoinTtreeModel()
+PointTreeModel::~PointTreeModel()
 {
      delete rootItem;
 }
 
-int PoinTtreeModel::columnCount(const QModelIndex & /* parent */) const
+int PointTreeModel::columnCount(const QModelIndex & /* parent */) const
 {
     return rootItem->columnCount();
 }
 
-QVariant PoinTtreeModel::data(const QModelIndex &index, int role) const
+QVariant PointTreeModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
@@ -40,7 +40,7 @@ QVariant PoinTtreeModel::data(const QModelIndex &index, int role) const
     return item->data(index.column());
 }
 
-Qt::ItemFlags PoinTtreeModel::flags(const QModelIndex &index) const
+Qt::ItemFlags PointTreeModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return 0;
@@ -48,7 +48,7 @@ Qt::ItemFlags PoinTtreeModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-PointTreeItem *PoinTtreeModel::getItem(const QModelIndex &index) const
+PointTreeItem *PointTreeModel::getItem(const QModelIndex &index) const
 {
     if (index.isValid()) {
         PointTreeItem *item = static_cast<PointTreeItem*>(index.internalPointer());
@@ -57,7 +57,7 @@ PointTreeItem *PoinTtreeModel::getItem(const QModelIndex &index) const
     return rootItem;
 }
 
-QVariant PoinTtreeModel::headerData(int section, Qt::Orientation orientation,
+QVariant PointTreeModel::headerData(int section, Qt::Orientation orientation,
                                int role) const
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
@@ -66,7 +66,7 @@ QVariant PoinTtreeModel::headerData(int section, Qt::Orientation orientation,
     return QVariant();
 }
 
-QModelIndex PoinTtreeModel::index(int row, int column, const QModelIndex &parent) const
+QModelIndex PointTreeModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (parent.isValid() && parent.column() != 0)
         return QModelIndex();
@@ -80,7 +80,7 @@ QModelIndex PoinTtreeModel::index(int row, int column, const QModelIndex &parent
         return QModelIndex();
 }
 
-bool PoinTtreeModel::insertColumns(int position, int columns, const QModelIndex &parent)
+bool PointTreeModel::insertColumns(int position, int columns, const QModelIndex &parent)
 {
     bool success;
 
@@ -91,7 +91,7 @@ bool PoinTtreeModel::insertColumns(int position, int columns, const QModelIndex 
     return success;
 }
 
-bool PoinTtreeModel::insertRows(int position, int rows, const QModelIndex &parent)
+bool PointTreeModel::insertRows(int position, int rows, const QModelIndex &parent)
 {
     PointTreeItem *parentItem = getItem(parent);
     bool success;
@@ -103,7 +103,7 @@ bool PoinTtreeModel::insertRows(int position, int rows, const QModelIndex &paren
     return success;
 }
 
-QModelIndex PoinTtreeModel::parent(const QModelIndex &index) const
+QModelIndex PointTreeModel::parent(const QModelIndex &index) const
 {
     if (!index.isValid())
         return QModelIndex();
@@ -117,7 +117,7 @@ QModelIndex PoinTtreeModel::parent(const QModelIndex &index) const
     return createIndex(parentItem->childNumber(), 0, parentItem);
 }
 
-bool PoinTtreeModel::removeColumns(int position, int columns, const QModelIndex &parent)
+bool PointTreeModel::removeColumns(int position, int columns, const QModelIndex &parent)
 {
     bool success;
 
@@ -131,7 +131,7 @@ bool PoinTtreeModel::removeColumns(int position, int columns, const QModelIndex 
     return success;
 }
 
-bool PoinTtreeModel::removeRows(int position, int rows, const QModelIndex &parent)
+bool PointTreeModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
     PointTreeItem *parentItem = getItem(parent);
     bool success = true;
@@ -143,14 +143,14 @@ bool PoinTtreeModel::removeRows(int position, int rows, const QModelIndex &paren
     return success;
 }
 
-int PoinTtreeModel::rowCount(const QModelIndex &parent) const
+int PointTreeModel::rowCount(const QModelIndex &parent) const
 {
     PointTreeItem *parentItem = getItem(parent);
 
     return parentItem->childCount();
 }
 
-bool PoinTtreeModel::setData(const QModelIndex &index, const QVariant &value,
+bool PointTreeModel::setData(const QModelIndex &index, const QVariant &value,
                         int role)
 {
     if (role != Qt::EditRole)
@@ -165,7 +165,7 @@ bool PoinTtreeModel::setData(const QModelIndex &index, const QVariant &value,
     return result;
 }
 
-bool PoinTtreeModel::setHeaderData(int section, Qt::Orientation orientation,
+bool PointTreeModel::setHeaderData(int section, Qt::Orientation orientation,
                               const QVariant &value, int role)
 {
     if (role != Qt::EditRole || orientation != Qt::Horizontal)
@@ -179,7 +179,7 @@ bool PoinTtreeModel::setHeaderData(int section, Qt::Orientation orientation,
     return result;
 }
 
-void PoinTtreeModel::setupModelData(const QStringList &lines, PointTreeItem *parent)
+void PointTreeModel::setupModelData(const QStringList &lines, PointTreeItem *parent)
 {
      QList<PointTreeItem*> parents;
      QList<int> indentations;

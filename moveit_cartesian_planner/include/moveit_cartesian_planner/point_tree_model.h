@@ -1,5 +1,5 @@
-#ifndef POINTTREEMODEL_H
-#define POINTTREEMODEL_H
+#ifndef PointTreeModel_H
+#define PointTreeModel_H
 
 #include <QAbstractItemModel>
 #include <QModelIndex>
@@ -7,14 +7,14 @@
 
 class PointTreeItem;
 
-class PoinTtreeModel : public QAbstractItemModel
+class PointTreeModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
-    PoinTtreeModel(const QStringList &headers, const QString &data,
+    PointTreeModel(const QStringList &headers, const QString &data,
               QObject *parent = 0);
-    ~PoinTtreeModel();
+    ~PointTreeModel();
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const;

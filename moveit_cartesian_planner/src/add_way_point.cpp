@@ -51,22 +51,22 @@ void AddWayPoint::onInitialize()
     connect(path_generate,SIGNAL(getRobotModelFrame_signal(const std::string)),this,SLOT(getRobotModelFrame_slot(const std::string)));
 
     connect(widget_,SIGNAL(addPoint(tf::Transform)),this,SLOT( addPointFromUI( tf::Transform)));
-    connect(widget_,SIGNAL(point_del_UI_signal(std::string)),this,SLOT(point_deleted( std::string)));
-    connect(this,SIGNAL(addPointFrom_RViz(const tf::Transform&,const int)),widget_,SLOT(insert_row(const tf::Transform&,const int)));
-    connect(this,SIGNAL(point_pose_updated_RViz(const tf::Transform&,const char*)),widget_,SLOT(point_pos_updated_slot(const tf::Transform&,const char*)));
-    connect(widget_,SIGNAL(point_pos_updated_signal(const tf::Transform&,const char*)),this,SLOT(point_pose_updated(const tf::Transform&,const char*)));
-    connect(this,SIGNAL(point_deleted_from_Rviz(int)),widget_,SLOT(remove_row(int)));
+    connect(widget_,SIGNAL(pointDelUI_signal(std::string)),this,SLOT(pointDeleted( std::string)));
+    connect(this,SIGNAL(addPointRViz(const tf::Transform&,const int)),widget_,SLOT(insertRow(const tf::Transform&,const int)));
+    connect(this,SIGNAL(pointPoseUpdatedRViz(const tf::Transform&,const char*)),widget_,SLOT(pointPosUpdated_slot(const tf::Transform&,const char*)));
+    connect(widget_,SIGNAL(pointPosUpdated_signal(const tf::Transform&,const char*)),this,SLOT(pointPoseUpdated(const tf::Transform&,const char*)));
+    connect(this,SIGNAL(pointDeleteRviz(int)),widget_,SLOT(removeRow(int)));
 
 
-    connect(widget_,SIGNAL(parse_waypoint_btn_signal()),this,SLOT(parse_waypoints()));
-    connect(this,SIGNAL(way_points_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(move_to_pose(std::vector<geometry_msgs::Pose>)));
+    connect(widget_,SIGNAL(parseWayPointBtn_signal()),this,SLOT(parseWayPoints()));
+    connect(this,SIGNAL(wayPoints_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(moveToPose(std::vector<geometry_msgs::Pose>)));
     connect(widget_,SIGNAL(saveToFileBtn_press()),this,SLOT(saveWayPointsToFile()));
-    connect(widget_,SIGNAL(clearAllPoints_signal()),this,SLOT(clearAllPoints_RViz()));
+    connect(widget_,SIGNAL(clearAllPoints_signal()),this,SLOT(clearAllPointsRViz()));
 
     
 
     connect(path_generate,SIGNAL(wayPointOutOfIK(int,int)),this,SLOT(wayPointOutOfIK_slot(int,int)));
-    connect(this,SIGNAL(onUpdatePosCheckIkVadility(const geometry_msgs::Pose&, const int)),path_generate,SLOT(checkWayPointValidity(const geometry_msgs::Pose&, const int)));
+    connect(this,SIGNAL(onUpdatePosCheckIkValidity(const geometry_msgs::Pose&, const int)),path_generate,SLOT(checkWayPointValidity(const geometry_msgs::Pose&, const int)));
     
     connect(this,SIGNAL(initRviz()),path_generate,SLOT(initRviz_done()));
 
@@ -74,7 +74,7 @@ void AddWayPoint::onInitialize()
 
     //initialize the waypoint count and draw the interaction marker
     count = 0;
-    makeBox();
+    makeInteractiveMarker();
     server->applyChanges();
     
     ROS_INFO("ready.");
@@ -149,10 +149,10 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
     tf::poseMsgToTF(feedback->pose,point_pos);
 
     makeArrow(point_pos,count);
-    //Q_EMIT onUpdatePosCheckIkVadility(feedback->pose,feedback->marker_name.c_str());
+    //Q_EMIT onUpdatePosCheckIkValidity(feedback->pose,feedback->marker_name.c_str());
     
     // if(strcmp(feedback->marker_name.c_str(),"add_point_button")!=0)
-    // Q_EMIT onUpdatePosCheckIkVadility(feedback->pose,atoi(feedback->marker_name.c_str()));
+    // Q_EMIT onUpdatePosCheckIkValidity(feedback->pose,atoi(feedback->marker_name.c_str()));
     //server->applyChanges();
     break;
     }
@@ -162,9 +162,9 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
 
       tf::Transform point_pos;
       tf::poseMsgToTF(feedback->pose,point_pos);
-      point_pose_updated(point_pos, feedback->marker_name.c_str());
+      pointPoseUpdated(point_pos, feedback->marker_name.c_str());
 
-      Q_EMIT point_pose_updated_RViz(point_pos, feedback->marker_name.c_str());
+      Q_EMIT pointPoseUpdatedRViz(point_pos, feedback->marker_name.c_str());
       ROS_DEBUG_STREAM("in update function, marker name: " << feedback->marker_name.c_str());
 
       break;
@@ -181,8 +181,8 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
       {
            std::string marker_name = feedback->marker_name;
            int marker_nr = atoi(marker_name.c_str());
-           Q_EMIT point_deleted_from_Rviz(marker_nr);
-           point_deleted(marker_name);
+           Q_EMIT pointDeleteRviz(marker_nr);
+           pointDeleted(marker_name);
            break;           
       }
       else
@@ -211,7 +211,7 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
   server->applyChanges();
 }
 
-void AddWayPoint::point_pose_updated(const tf::Transform& point_pos, const char* marker_name)
+void AddWayPoint::pointPoseUpdated(const tf::Transform& point_pos, const char* marker_name)
 {
 
   if(strcmp("add_point_button",marker_name)==0)
@@ -245,11 +245,11 @@ void AddWayPoint::point_pose_updated(const tf::Transform& point_pos, const char*
       s << index;
       server->setPose(s.str(),pose);
       server->applyChanges();
-      Q_EMIT onUpdatePosCheckIkVadility(pose,index);    
+      Q_EMIT onUpdatePosCheckIkValidity(pose,index);    
     }
 }
 
-InteractiveMarkerControl& AddWayPoint::makeArrowControl_default( InteractiveMarker &msg )
+InteractiveMarkerControl& AddWayPoint::makeArrowControlDefault( InteractiveMarker &msg )
 {
   InteractiveMarkerControl control_menu;
   control_menu.always_visible = true;
@@ -287,7 +287,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_default( InteractiveMark
 
 }
 
-InteractiveMarkerControl& AddWayPoint::makeArrowControl_details( InteractiveMarker &msg )
+InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarker &msg )
 {
   InteractiveMarkerControl control_menu;
   control_menu.always_visible = true;
@@ -405,7 +405,7 @@ void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
 
             waypoints_pos.push_back( point_pos );
             //orientations.push_back( point_orient );
-            Q_EMIT addPointFrom_RViz(point_pos,count);
+            Q_EMIT addPointRViz(point_pos,count);
         }
 /********************************************Check if we have points in the same position and orientation in the scene***************************************************************************************/   
         // check if we have points in the same position and orientation in the scene. If we do do not add one.
@@ -421,7 +421,7 @@ void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
             //orientations.push_back( point_orient );
 
           ROS_INFO("Adding new arrow!");
-          Q_EMIT addPointFrom_RViz(point_pos,count);
+          Q_EMIT addPointRViz(point_pos,count);
         }
     else
     {
@@ -435,12 +435,12 @@ void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
         int_marker.name = s.str();
         int_marker.description = s.str();
 
-        makeArrowControl_default(int_marker);
+        makeArrowControlDefault(int_marker);
         server->insert( int_marker);
         server->setCallback( int_marker.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
         menu_handler.apply(*server,int_marker.name);
         server->applyChanges();
-        Q_EMIT onUpdatePosCheckIkVadility(int_marker.pose,count_arrow);          
+        Q_EMIT onUpdatePosCheckIkValidity(int_marker.pose,count_arrow);          
 }
 
 void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_control)
@@ -453,12 +453,12 @@ void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_co
     if(set_control==true)
     {
       int_marker.controls.clear();
-      makeArrowControl_details(int_marker);
+      makeArrowControlDetails(int_marker);
     }
     else if(!set_control)
     {
       int_marker.controls.clear();
-      makeArrowControl_default(int_marker);
+      makeArrowControlDefault(int_marker);
     } 
     
      //we can use this in another function if we want to manipulate the pose of the marker.
@@ -470,11 +470,11 @@ void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_co
     menu_handler.apply(*server,int_marker.name);
     // tf::Transform marker_pose;
     // tf::poseMsgToTF(int_marker.pose,marker_pose);
-    Q_EMIT onUpdatePosCheckIkVadility(int_marker.pose,atoi(marker_name.c_str()));
+    Q_EMIT onUpdatePosCheckIkValidity(int_marker.pose,atoi(marker_name.c_str()));
 
 }
 
-void AddWayPoint::point_deleted(std::string marker_name)
+void AddWayPoint::pointDeleted(std::string marker_name)
 {
     for( int i=0;i<waypoints_pos.size();i++)
             ROS_INFO_STREAM( "vecotr before delete: \n"<<"x:"<< waypoints_pos[i].getOrigin().x()<<"; " << waypoints_pos[i].getOrigin().y()<< "; "<<waypoints_pos[i].getOrigin().z()<<";\n");
@@ -499,7 +499,7 @@ void AddWayPoint::point_deleted(std::string marker_name)
            server->applyChanges();
 }
 
-InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
+InteractiveMarkerControl& AddWayPoint::makeInteractiveMarkerControl( InteractiveMarker &msg )
 {
   //define a marker
   Marker marker;
@@ -580,7 +580,7 @@ InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
   return msg.controls.back();
 }
 
-void AddWayPoint::makeBox()
+void AddWayPoint::makeInteractiveMarker()
 {
         InteractiveMarker int_marker;
         int_marker.header.frame_id = target_frame_;
@@ -598,13 +598,13 @@ void AddWayPoint::makeBox()
         //button like interactive marker. Detect when we have left click with the mouse and add new arrow then
         int_marker.name = "add_point_button";
 
-        makeBoxControl(int_marker);
+        makeInteractiveMarkerControl(int_marker);
 
         server->insert( int_marker);
         //add interaction feedback to the markers
         server->setCallback( int_marker.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
 }
-void AddWayPoint::parse_waypoints()
+void AddWayPoint::parseWayPoints()
 {
   geometry_msgs::Pose target_pose;
   std::vector<geometry_msgs::Pose> waypoints;
@@ -621,7 +621,7 @@ void AddWayPoint::parse_waypoints()
     // ROS_INFO_STREAM( "orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
   }
 
-  Q_EMIT way_points_signal(waypoints);
+  Q_EMIT wayPoints_signal(waypoints);
 
 }
 void AddWayPoint::saveWayPointsToFile()
@@ -677,13 +677,13 @@ void AddWayPoint::saveWayPointsToFile()
      }
 }
 
-void AddWayPoint::clearAllPoints_RViz()
+void AddWayPoint::clearAllPointsRViz()
 {
   waypoints_pos.clear();
   server->clear();
   //delete the waypoints_pos vector
   count = 0;
-  makeBox();
+  makeInteractiveMarker();
   server->applyChanges();
 }
 void AddWayPoint::wayPointOutOfIK_slot(int point_number,int out)

@@ -46,7 +46,7 @@ void GenerateCartesianPath::init()
 
 }
 
-void GenerateCartesianPath::move_to_pose(std::vector<geometry_msgs::Pose> waypoints)
+void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoints)
 {
 
 
