@@ -98,6 +98,7 @@ private:
     tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
     ros::NodeHandle n_;
     std::string target_frame_;
+    std::string markers_frame;
     
 
 protected Q_SLOTS:
@@ -112,6 +113,8 @@ public Q_SLOTS:
 	void saveWayPointsToFile();
 	void clearAllPoints_RViz();
 	void wayPointOutOfIK_slot(int point_number,int out);
+	void getRobotModelFrame_slot(const std::string robot_model_frame);
+
 Q_SIGNALS:
 	void initRviz();
 	void point_deleted_from_Rviz(int marker_name_nr); 
@@ -125,6 +128,7 @@ Q_SIGNALS:
 protected:
     QWidget *widget_;
     QObject *path_generate;
+    //void timerEvent(QTimerEvent *event);
 };
 } //end of namespace moveit_cartesian_planner
 

@@ -5,7 +5,7 @@
 #include <QModelIndex>
 #include <QVariant>
 
-class PoinTtreeItem;
+class PointTreeItem;
 
 class PoinTtreeModel : public QAbstractItemModel
 {
@@ -42,10 +42,10 @@ public:
                      const QModelIndex &parent = QModelIndex());
 
 private:
-    void setupModelData(const QStringList &lines, PoinTtreeItem *parent);
-    PoinTtreeItem *getItem(const QModelIndex &index) const;
+    void setupModelData(const QStringList &lines, PointTreeItem *parent);
+    PointTreeItem *getItem(const QModelIndex &index) const;
 
-    PoinTtreeItem *rootItem;
+    PointTreeItem *rootItem;
 };
 
 #endif

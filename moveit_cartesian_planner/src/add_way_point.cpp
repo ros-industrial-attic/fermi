@@ -14,7 +14,7 @@
 namespace moveit_cartesian_planner
 {
 
-AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_(),  target_frame_("/world_link") //change this depending on the move it frame
+AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_()//,  target_frame_("/base_link") //change this depending on the move it frame
 {
 
      setObjectName("MoveItPlanner");
@@ -31,22 +31,24 @@ AddWayPoint::~AddWayPoint()
 
 void AddWayPoint::onInitialize()
 {
-    server.reset( new interactive_markers::InteractiveMarkerServer("Arrow") );
-    ROS_INFO("initializing..");
-    menu_handler.insert( "Delete", boost::bind( &AddWayPoint::processFeedback, this, _1 ) );
-    menu_handler.setCheckState(menu_handler.insert( "Fine adjustment", boost::bind( &AddWayPoint::processFeedback, this, _1 )),interactive_markers::MenuHandler::UNCHECKED);
 
-    count = 0;
-    makeBox();
-    server->applyChanges();
-
-    ROS_INFO("Initializing path planning widget");
     // creating main layout
-    widget_ = new widgets::PathPlanningWidget("~");
     path_generate = new GenerateCartesianPath();
+    widget_ = new widgets::PathPlanningWidget("~");
     this->parentWidget()->resize(widget_->width(),widget_->height());
     QHBoxLayout* main_layout = new QHBoxLayout(this);
     main_layout->addWidget(widget_);
+
+    server.reset( new interactive_markers::InteractiveMarkerServer("moveit_cartesian_planner") );
+    ROS_INFO("initializing..");
+    menu_handler.insert( "Delete", boost::bind( &AddWayPoint::processFeedback, this, _1 ) );
+    menu_handler.setCheckState(menu_handler.insert( "Fine adjustment", boost::bind( &AddWayPoint::processFeedback, this, _1 )),interactive_markers::MenuHandler::UNCHECKED);
+    
+    //make all the necessary connections for the QObject communications
+
+    ROS_INFO("Initializing path planning widget");
+
+    connect(path_generate,SIGNAL(getRobotModelFrame_signal(const std::string)),this,SLOT(getRobotModelFrame_slot(const std::string)));
 
     connect(widget_,SIGNAL(addPoint(tf::Transform)),this,SLOT( addPointFromUI( tf::Transform)));
     connect(widget_,SIGNAL(point_del_UI_signal(std::string)),this,SLOT(point_deleted( std::string)));
@@ -54,22 +56,29 @@ void AddWayPoint::onInitialize()
     connect(this,SIGNAL(point_pose_updated_RViz(const tf::Transform&,const char*)),widget_,SLOT(point_pos_updated_slot(const tf::Transform&,const char*)));
     connect(widget_,SIGNAL(point_pos_updated_signal(const tf::Transform&,const char*)),this,SLOT(point_pose_updated(const tf::Transform&,const char*)));
     connect(this,SIGNAL(point_deleted_from_Rviz(int)),widget_,SLOT(remove_row(int)));
-    //connect(this,SIGNAL(initRviz()),widget_,SLOT(initTreeView()));
+
 
     connect(widget_,SIGNAL(parse_waypoint_btn_signal()),this,SLOT(parse_waypoints()));
     connect(this,SIGNAL(way_points_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(move_to_pose(std::vector<geometry_msgs::Pose>)));
     connect(widget_,SIGNAL(saveToFileBtn_press()),this,SLOT(saveWayPointsToFile()));
     connect(widget_,SIGNAL(clearAllPoints_signal()),this,SLOT(clearAllPoints_RViz()));
 
+    
+
     connect(path_generate,SIGNAL(wayPointOutOfIK(int,int)),this,SLOT(wayPointOutOfIK_slot(int,int)));
     connect(this,SIGNAL(onUpdatePosCheckIkVadility(const geometry_msgs::Pose&, const int)),path_generate,SLOT(checkWayPointValidity(const geometry_msgs::Pose&, const int)));
-    //connect(widget_,SIGNAL(point_pos_updated_signal(const tf::Transform&,const char*)),path_generate,SLOT(checkWayPointValidity(const tf::Transform&,const char*)));
-    //connect(this,SIGNAL(point_pose_updated_RViz(const tf::Transform&,const char*)),path_generate,SLOT(checkWayPointValidity(const tf::Transform&,const char*)));
+    
+    connect(this,SIGNAL(initRviz()),path_generate,SLOT(initRviz_done()));
 
+    Q_EMIT initRviz(); 
 
-    //Q_EMIT initRviz();
-
+    //initialize the waypoint count and draw the interaction marker
+    count = 0;
+    makeBox();
+    server->applyChanges();
+    
     ROS_INFO("ready.");
+      
 }
 
 void AddWayPoint::load(const rviz::Config& config)
@@ -81,6 +90,7 @@ void AddWayPoint::load(const rviz::Config& config)
   {
     //ROS_INFO_STREAM("Loaded TextEntry with value: "<<text_entry.toStdString());
   }
+
   ROS_INFO_STREAM("rviz Initialization Finished reading config file");
 }
 
@@ -130,10 +140,6 @@ void AddWayPoint::addPointFromUI( const tf::Transform point_pos)
 void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
 {
 
-  // std::ostringstream s;
-
-  // s<<"Feedback fom marker '" << feedback->marker_name << "' "
-  //                            << "/ control '"<<feedback->control_name << "'";
   switch ( feedback->event_type )
   {
     case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
@@ -159,16 +165,7 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
       point_pose_updated(point_pos, feedback->marker_name.c_str());
 
       Q_EMIT point_pose_updated_RViz(point_pos, feedback->marker_name.c_str());
-      // ROS_INFO_STREAM("in update function, marker name: " << feedback->marker_name.c_str());
-
-      // int point_number;
-      // if (isdigit(feedback->marker_name[0]))
-      // {
-      //   point_number = atoi (feedback->marker_name.c_str());
-      //   Q_EMIT onUpdatePosCheckIkVadility(feedback->pose,point_number);
-      // }
-
-      
+      ROS_DEBUG_STREAM("in update function, marker name: " << feedback->marker_name.c_str());
 
       break;
     }
@@ -196,7 +193,6 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
           menu_handler.setCheckState( menu_item, interactive_markers::MenuHandler::CHECKED );
           geometry_msgs::Pose pose;
           changeMarkerControlAndPose( feedback->marker_name.c_str(),true);
-          // Q_EMIT onUpdatePosCheckIkVadility(feedback->pose,atoi(feedback->marker_name.c_str()));
           break;
         }
         else 
@@ -205,7 +201,6 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
           ROS_INFO("The selected marker is shown as default");
           geometry_msgs::Pose pose;
           changeMarkerControlAndPose( feedback->marker_name.c_str(),false);
-          // Q_EMIT onUpdatePosCheckIkVadility(feedback->pose,atoi(feedback->marker_name.c_str()));
           break;
         }
       }
@@ -269,7 +264,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_default( InteractiveMark
   //make the markers with interesting color
   marker.color.r = 0.10;
   marker.color.g = 0.20;
-  marker.color.b = 1.0;
+  marker.color.b = 0.4;
   marker.color.a = 1.0;
 
   //make a menu control for the Arrow. This could be used for the user 
@@ -307,7 +302,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_details( InteractiveMark
   //make the markers with interesting color
   marker.color.r = 0.10;
   marker.color.g = 0.20;
-  marker.color.b = 1.0;
+  marker.color.b = 0.4;
   marker.color.a = 1.0;
 
 
@@ -377,10 +372,15 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControl_details( InteractiveMark
 
 void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
 {
+      //ROS_INFO_STREAM("Robot Frame in AddWayPoint Object" << GenerateCartesianPath->getRobotModelFrame());
         InteractiveMarker int_marker;
 
+        ROS_INFO_STREAM("Markers frame is: "<< target_frame_);
+
         //change this later for the user to add different frame ids for the markers
-        int_marker.header.frame_id = "/world_link";
+        int_marker.header.frame_id = target_frame_;
+
+         ROS_DEBUG_STREAM("Markers has frame id: "<< int_marker.header.frame_id);
 
         //static set of the size of the arrow. Can be changed later for estetics.
         int_marker.scale =0.4;
@@ -583,8 +583,9 @@ InteractiveMarkerControl& AddWayPoint::makeBoxControl( InteractiveMarker &msg )
 void AddWayPoint::makeBox()
 {
         InteractiveMarker int_marker;
-        int_marker.header.frame_id = "/world_link";
+        int_marker.header.frame_id = target_frame_;
         int_marker.scale = 0.3;
+        ROS_INFO_STREAM("Marker Frame is:" << target_frame_);
 
         int_marker.pose.position.x = 0.0;
         int_marker.pose.position.y = 0.0;
@@ -722,34 +723,26 @@ else
     int_marker.controls.at(control_size).markers.at(0).color.g = 1.0;
     int_marker.controls.at(control_size).markers.at(0).color.b = 0.0;
     int_marker.controls.at(control_size).markers.at(0).color.a = 1.0;
-
-  // point_marker.color.r = 1.0;
-  // point_marker.color.g = 1.0;
-  // point_marker.color.b = 0.0;
-  // point_marker.color.a = 1.0;
-
-  // int_marker.controls.clear();
-  // control.markers.clear();
-
-  // control.markers.push_back( point_marker );
-  // int_marker.controls.push_back( control );
-  // server->insert( int_marker);
-  // server->applyChanges();
 }
 else
 {
-  // int_marker.controls.clear();
-  // makeArrowControl_default(int_marker);
 
     int_marker.controls.at(control_size).markers.at(0).color.r = 0.2;
     int_marker.controls.at(control_size).markers.at(0).color.g = 0.1;
-    int_marker.controls.at(control_size).markers.at(0).color.b = 1.0;
+    int_marker.controls.at(control_size).markers.at(0).color.b = 0.4;
     int_marker.controls.at(control_size).markers.at(0).color.a = 1.0;
 
 }
 server->insert( int_marker);
 server->applyChanges();
 
+}
+
+void AddWayPoint::getRobotModelFrame_slot(const std::string robot_model_frame)
+{
+
+  target_frame_.assign(robot_model_frame);
+  ROS_INFO_STREAM("The robot model frame is: " << target_frame_);
 }
 
 }//end of namespace for add_way_point

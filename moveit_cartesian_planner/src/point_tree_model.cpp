@@ -13,7 +13,7 @@ PoinTtreeModel::PoinTtreeModel(const QStringList &headers, const QString &data,
     for(int i=0;i<headers.count();i++)
          rootData << headers.at(i);
 
-    rootItem = new PoinTtreeItem(rootData);
+    rootItem = new PointTreeItem(rootData);
     setupModelData(data.split(QString("\n")), rootItem);
 }
 
@@ -35,7 +35,7 @@ QVariant PoinTtreeModel::data(const QModelIndex &index, int role) const
     if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
 
-    PoinTtreeItem *item = getItem(index);
+    PointTreeItem *item = getItem(index);
 
     return item->data(index.column());
 }
@@ -48,10 +48,10 @@ Qt::ItemFlags PoinTtreeModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-PoinTtreeItem *PoinTtreeModel::getItem(const QModelIndex &index) const
+PointTreeItem *PoinTtreeModel::getItem(const QModelIndex &index) const
 {
     if (index.isValid()) {
-        PoinTtreeItem *item = static_cast<PoinTtreeItem*>(index.internalPointer());
+        PointTreeItem *item = static_cast<PointTreeItem*>(index.internalPointer());
         if (item) return item;
     }
     return rootItem;
@@ -71,9 +71,9 @@ QModelIndex PoinTtreeModel::index(int row, int column, const QModelIndex &parent
     if (parent.isValid() && parent.column() != 0)
         return QModelIndex();
 
-    PoinTtreeItem *parentItem = getItem(parent);
+    PointTreeItem *parentItem = getItem(parent);
 
-    PoinTtreeItem *childItem = parentItem->child(row);
+    PointTreeItem *childItem = parentItem->child(row);
     if (childItem)
         return createIndex(row, column, childItem);
     else
@@ -93,7 +93,7 @@ bool PoinTtreeModel::insertColumns(int position, int columns, const QModelIndex 
 
 bool PoinTtreeModel::insertRows(int position, int rows, const QModelIndex &parent)
 {
-    PoinTtreeItem *parentItem = getItem(parent);
+    PointTreeItem *parentItem = getItem(parent);
     bool success;
 
     beginInsertRows(parent, position, position + rows - 1);
@@ -108,8 +108,8 @@ QModelIndex PoinTtreeModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    PoinTtreeItem *childItem = getItem(index);
-    PoinTtreeItem *parentItem = childItem->parent();
+    PointTreeItem *childItem = getItem(index);
+    PointTreeItem *parentItem = childItem->parent();
 
     if (parentItem == rootItem)
         return QModelIndex();
@@ -133,7 +133,7 @@ bool PoinTtreeModel::removeColumns(int position, int columns, const QModelIndex 
 
 bool PoinTtreeModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
-    PoinTtreeItem *parentItem = getItem(parent);
+    PointTreeItem *parentItem = getItem(parent);
     bool success = true;
 
     beginRemoveRows(parent, position, position + rows - 1);
@@ -145,7 +145,7 @@ bool PoinTtreeModel::removeRows(int position, int rows, const QModelIndex &paren
 
 int PoinTtreeModel::rowCount(const QModelIndex &parent) const
 {
-    PoinTtreeItem *parentItem = getItem(parent);
+    PointTreeItem *parentItem = getItem(parent);
 
     return parentItem->childCount();
 }
@@ -156,7 +156,7 @@ bool PoinTtreeModel::setData(const QModelIndex &index, const QVariant &value,
     if (role != Qt::EditRole)
         return false;
 
-    PoinTtreeItem *item = getItem(index);
+    PointTreeItem *item = getItem(index);
     bool result = item->setData(index.column(), value);
 
     if (result)
@@ -179,9 +179,9 @@ bool PoinTtreeModel::setHeaderData(int section, Qt::Orientation orientation,
     return result;
 }
 
-void PoinTtreeModel::setupModelData(const QStringList &lines, PoinTtreeItem *parent)
+void PoinTtreeModel::setupModelData(const QStringList &lines, PointTreeItem *parent)
 {
-     QList<PoinTtreeItem*> parents;
+     QList<PointTreeItem*> parents;
      QList<int> indentations;
      parents << parent;
      indentations << 0;
@@ -220,7 +220,7 @@ void PoinTtreeModel::setupModelData(const QStringList &lines, PoinTtreeItem *par
              }
 
              // Append a new item to the current parent's list of children.
-             PoinTtreeItem *parent = parents.last();
+             PointTreeItem *parent = parents.last();
              parent->insertChildren(parent->childCount(), 1, rootItem->columnCount());
              for (int column = 0; column < columnData.size(); ++column)
                  parent->child(parent->childCount() - 1)->setData(column, columnData[column]);

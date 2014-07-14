@@ -2,60 +2,60 @@
 
  #include <moveit_cartesian_planner/point_tree_item.h>
 
-PoinTtreeItem::PoinTtreeItem(const QVector<QVariant> &data, PoinTtreeItem *parent)
+PointTreeItem::PointTreeItem(const QVector<QVariant> &data, PointTreeItem *parent)
 {
      parentItem = parent;
      itemData = data;
 }
 
-PoinTtreeItem::~PoinTtreeItem()
+PointTreeItem::~PointTreeItem()
 {
      qDeleteAll(childItems);
 }
 
-PoinTtreeItem *PoinTtreeItem::child(int number)
+PointTreeItem *PointTreeItem::child(int number)
 {
      return childItems.value(number);
 }
 
-int PoinTtreeItem::childCount() const
+int PointTreeItem::childCount() const
 {
      return childItems.count();
 }
 
-int PoinTtreeItem::childNumber() const
+int PointTreeItem::childNumber() const
 {
      if (parentItem)
-         return parentItem->childItems.indexOf(const_cast<PoinTtreeItem*>(this));
+         return parentItem->childItems.indexOf(const_cast<PointTreeItem*>(this));
 
      return 0;
 }
 
-int PoinTtreeItem::columnCount() const
+int PointTreeItem::columnCount() const
 {
      return itemData.count();
 }
 
-QVariant PoinTtreeItem::data(int column) const
+QVariant PointTreeItem::data(int column) const
 {
      return itemData.value(column);
 }
 
-bool PoinTtreeItem::insertChildren(int position, int count, int columns)
+bool PointTreeItem::insertChildren(int position, int count, int columns)
 {
      if (position < 0 || position > childItems.size())
          return false;
 
      for (int row = 0; row < count; ++row) {
          QVector<QVariant> data(columns);
-         PoinTtreeItem *item = new PoinTtreeItem(data, this);
+         PointTreeItem *item = new PointTreeItem(data, this);
          childItems.insert(position, item);
      }
 
      return true;
 }
 
-bool PoinTtreeItem::insertColumns(int position, int columns)
+bool PointTreeItem::insertColumns(int position, int columns)
 {
      if (position < 0 || position > itemData.size())
          return false;
@@ -63,7 +63,7 @@ bool PoinTtreeItem::insertColumns(int position, int columns)
      for (int column = 0; column < columns; ++column)
          itemData.insert(position, QVariant());
 
-     PoinTtreeItem *child;
+     PointTreeItem *child;
      for(int i=0;i<childItems.count();i++)
      {
 
@@ -74,12 +74,12 @@ bool PoinTtreeItem::insertColumns(int position, int columns)
      return true;
 }
 
-PoinTtreeItem *PoinTtreeItem::parent()
+PointTreeItem *PointTreeItem::parent()
 {
      return parentItem;
 }
 
-bool PoinTtreeItem::removeChildren(int position, int count)
+bool PointTreeItem::removeChildren(int position, int count)
 {
      if (position < 0 || position + count > childItems.size())
          return false;
@@ -90,7 +90,7 @@ bool PoinTtreeItem::removeChildren(int position, int count)
      return true;
 }
 
-bool PoinTtreeItem::removeColumns(int position, int columns)
+bool PointTreeItem::removeColumns(int position, int columns)
 {
      if (position < 0 || position + columns > itemData.size())
          return false;
@@ -98,7 +98,7 @@ bool PoinTtreeItem::removeColumns(int position, int columns)
      for (int column = 0; column < columns; ++column)
          itemData.remove(position);
 
-          PoinTtreeItem *child;
+          PointTreeItem *child;
      for(int i=0;i<childItems.count();i++)
      {
 
@@ -109,7 +109,7 @@ bool PoinTtreeItem::removeColumns(int position, int columns)
      return true;
 }
 
-bool PoinTtreeItem::setData(int column, const QVariant &value)
+bool PointTreeItem::setData(int column, const QVariant &value)
 {
      if (column < 0 || column >= itemData.size())
          return false;

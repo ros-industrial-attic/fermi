@@ -1,5 +1,5 @@
 <library path="lib/libmoveit_cartesian_planner">
-  <class name="moveit_cartesian_planner/AddWayPoint"
+  <class name="moveit_cartesian_planner/MoveIt Cartesian Path Planner"
          type="moveit_cartesian_planner::AddWayPoint"
          base_class_type="rviz::Panel">
     <description>
