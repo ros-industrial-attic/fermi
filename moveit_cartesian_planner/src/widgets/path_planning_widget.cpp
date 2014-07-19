@@ -2,16 +2,6 @@
 #include <moveit_cartesian_planner/point_tree_model.h>
 #include <moveit_cartesian_planner/generate_cartesian_path.h>
 
-
-
-#ifndef DEG2RAD
-#define DEG2RAD(x) ((x)*0.017453293)
-#endif
-
-#ifndef RAD2DEG
-#define RAD2DEG(x) ((x)*57.29578)
-#endif
-
 namespace moveit_cartesian_planner
 {
 	namespace widgets {
@@ -46,6 +36,8 @@ namespace moveit_cartesian_planner
       ui_.treeView->setModel(model);
       ui_.btn_LoadPath->setToolTip(tr("Load way-points from a file"));
       ui_.btn_SavePath->setToolTip(tr("Save way-points to a file"));
+      ui_.btnAddPoint->setToolTip(tr("Add a New way-point"));
+      ui_.btnRemovePoint->setToolTip(tr("Remove a selected way-point"));
 
 			//connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
       connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
@@ -71,8 +63,8 @@ namespace moveit_cartesian_planner
         QAbstractItemModel *model=ui_.treeView->model();
 
         model->setData(model->index(0,0,QModelIndex()),QVariant("add_point_button"),Qt::EditRole);
-        model->setData(model->index(0,1,QModelIndex()),QVariant("0;0;0;"),Qt::EditRole);
-        model->setData(model->index(0,2,QModelIndex()),QVariant("0;0;0;1;"),Qt::EditRole);
+        // model->setData(model->index(0,1,QModelIndex()),QVariant("0;0;0;"),Qt::EditRole);
+        // model->setData(model->index(0,2,QModelIndex()),QVariant("0;0;0;1;"),Qt::EditRole);
 
         //update the validator for the lineEdit Point
         pointRange();
@@ -100,15 +92,7 @@ namespace moveit_cartesian_planner
         rz = DEG2RAD(ui_.LineEditRz->text().toDouble());
 
         // // create transform
-        // tf::Vector3 p(x,y,z);
-        // tf::Quaternion q;
-        // //correct this we can do it simplier with using tf::setQuartenionFromRPY
-        // tf::Matrix3x3 m;
-        // m.setRPY(rx,ry,rz);
-        // m.getRotation(q);
-        //q.setRPY(rx,ry,rz);
         tf::Transform point_pos( tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z)));
-        //pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
         Q_EMIT addPoint(point_pos);
         //ROS_INFO_STREAM("Quartenion set at point add UI: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
 
@@ -145,19 +129,16 @@ namespace moveit_cartesian_planner
       ROS_INFO("inserting new row in the TreeView");
       QAbstractItemModel *model = ui_.treeView->model();
 
-      //convert the quartenion to roll pitch yaw angle,check if you can do it simpler
-      double rx,ry,rz;
-      tf::Matrix3x3 m(point_pos.getRotation());
-      m.getRPY(rx, ry, rz,1);
+      //convert the quartenion to roll pitch yaw angle
+      tf::Vector3 p = point_pos.getOrigin();
+      tfScalar rx,ry,rz;
+      point_pos.getBasis().getRPY(rx,ry,rz,1);
 
       if(count == 0)
       {
         model->insertRow(count,model->index(count, 0));
 
         model->setData(model->index(0,0,QModelIndex()),QVariant("add_point_button"),Qt::EditRole);
-        model->setData(model->index(0,1,QModelIndex()),QVariant("0;0;0;"),Qt::EditRole);
-        model->setData(model->index(0,2,QModelIndex()),QVariant("0;0;0;"),Qt::EditRole);
-        //update the validator for the lineEdit Point
         pointRange();
       }
       else
@@ -169,9 +150,9 @@ namespace moveit_cartesian_planner
          return;
        }
       //set the strings of each axis of the position
-      QString pos_x = QString::number(point_pos.getOrigin().x());
-      QString pos_y = QString::number(point_pos.getOrigin().y());
-      QString pos_z = QString::number(point_pos.getOrigin().z());
+      QString pos_x = QString::number(p.x());
+      QString pos_y = QString::number(p.y());
+      QString pos_z = QString::number(p.z());
 
       //repeat that with the orientation
       QString orient_x = QString::number(RAD2DEG(rx));
@@ -245,11 +226,9 @@ namespace moveit_cartesian_planner
 
         ROS_INFO_STREAM("Updating marker name:"<<marker_name);
 
-        //convert the quartenion to roll pitch yaw Euler angle, same here check if you can do it simpler
-        double rx,ry,rz;
-        tf::Matrix3x3 m(point_pos.getRotation());
-        //ROS_INFO_STREAM("Quartenion set at update_point: "<<orientation.x()<<"; "<<orientation.y()<<"; "<<orientation.z()<<"; "<<orientation.w()<<";");
-        m.getRPY(rx, ry, rz,1);
+        tf::Vector3 p = point_pos.getOrigin();
+        tfScalar rx,ry,rz;
+        point_pos.getBasis().getRPY(rx,ry,rz,1);
 
         rx = RAD2DEG(rx);
         ry = RAD2DEG(ry);
@@ -276,9 +255,9 @@ namespace moveit_cartesian_planner
           QModelIndex chldind_orient = model->index(1, 0, ind);
 
           //set the strings of each axis of the position
-          QString pos_x = QString::number(point_pos.getOrigin().x());
-          QString pos_y = QString::number(point_pos.getOrigin().y());
-          QString pos_z = QString::number(point_pos.getOrigin().z());
+          QString pos_x = QString::number(p.x());
+          QString pos_y = QString::number(p.y());
+          QString pos_z = QString::number(p.z());
 
           //repeat that with the orientation
           QString orient_x = QString::number(rx);
@@ -330,17 +309,11 @@ namespace moveit_cartesian_planner
 
             tf::Vector3 p(pos_x.toDouble(),pos_y.toDouble(),pos_z.toDouble());
 
-            //tf::Quaternion q;
-            float rx,ry,rz;
+            tfScalar rx,ry,rz;
             rx = DEG2RAD(orient_x.toDouble());
             ry = DEG2RAD(orient_y.toDouble());
             rz = DEG2RAD(orient_z.toDouble());
 
-            // tf::Matrix3x3 m;
-            // m.setRPY(rx,ry,rz);
-            // m.getRotation(q);
-            // //q.setRPY(DEG2RAD(orient_x.toDouble()),DEG2RAD(orient_y.toDouble()),DEG2RAD(orient_z.toDouble()));
-            // ROS_INFO_STREAM("Quartenion at TreeView Edit: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
             tf::Transform point_pos =  tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),p);
 
             Q_EMIT pointPosUpdated_signal(point_pos,temp_str.c_str());
@@ -406,7 +379,7 @@ void PathPlanningWidget::loadPointsFromFile()
           pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
 
 
-          addPoint(pose_tf);
+          Q_EMIT addPoint(pose_tf);
         }
       }
 
@@ -422,7 +395,9 @@ void PathPlanningWidget::loadPointsFromFile()
       //clear the treeView
       QAbstractItemModel *model = ui_.treeView->model();
       model->removeRows(0,model->rowCount());
-      insertRow(tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0)),0);
+      tf::Transform t;
+      t.setIdentity();
+      insertRow(t,0); 
       pointRange();
 
       Q_EMIT clearAllPoints_signal();

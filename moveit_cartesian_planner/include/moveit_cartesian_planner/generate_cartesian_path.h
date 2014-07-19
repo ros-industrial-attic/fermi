@@ -3,6 +3,9 @@
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
+#include <tf/tf.h>
+#include <tf_conversions/tf_eigen.h>
+
 
 #include <pluginlib/class_loader.h>
 
@@ -28,7 +31,7 @@ public Q_SLOTS:
 	void initRviz_done();
 Q_SIGNALS:
 	void wayPointOutOfIK(int point_number, int out_of_range); 
-	void getRobotModelFrame_signal(const std::string robot_model_frame);
+	void getRobotModelFrame_signal(const std::string robot_model_frame,const tf::Transform end_effector);
 protected:
 	robot_model_loader::RobotModelLoader robot_model_loader;
 	moveit::core::RobotModelPtr kinematic_model;

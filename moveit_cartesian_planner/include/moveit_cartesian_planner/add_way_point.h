@@ -16,9 +16,10 @@
 #include <interactive_markers/menu_handler.h>
 #include <tf/LinearMath/Vector3.h>
 #include <tf/LinearMath/Scalar.h>
-#include <geometry_msgs/Twist.h>
+//#include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PointStamped.h>
+#include <std_msgs/ColorRGBA.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include <tf/message_filter.h>
@@ -74,6 +75,10 @@ public:
 	virtual int getCount();
 
 private:
+	//function for creating a way-point marker
+	Marker makeWayPoint( InteractiveMarker &msg );
+	//function to create the InteractionArrow Marker
+	Marker makeInterArrow( InteractiveMarker &msg );
 	//create controls for each different marker. Here we have control for the defaulot starting control ArrowMarkers(the cartesian way points)
 	InteractiveMarkerControl& makeArrowControlDefault(InteractiveMarker &msg );
 
@@ -98,7 +103,7 @@ private:
     tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
     ros::NodeHandle n_;
     std::string target_frame_;
-    
+
 protected Q_SLOTS:
 	// rviz::Panel virtual functions
 	virtual void load(const rviz::Config& config);
@@ -111,7 +116,7 @@ public Q_SLOTS:
 	void saveWayPointsToFile();
 	void clearAllPointsRViz();
 	void wayPointOutOfIK_slot(int point_number,int out);
-	void getRobotModelFrame_slot(const std::string robot_model_frame);
+	void getRobotModelFrame_slot(const std::string robot_model_frame,const tf::Transform end_effector);
 
 Q_SIGNALS:
 	void initRviz();
@@ -125,6 +130,17 @@ Q_SIGNALS:
 protected:
     QWidget *widget_;
     QObject *path_generate;
+private:
+	//define constants for color, arrow size, etc.
+	std_msgs::ColorRGBA WAY_POINT_COLOR;
+	std_msgs::ColorRGBA WAY_POINT_COLOR_OUTSIDE_IK;
+	std_msgs::ColorRGBA ARROW_INTER_COLOR;
+
+	geometry_msgs::Vector3 WAY_POINT_SCALE_CONTROL;
+	geometry_msgs::Vector3 ARROW_INTER_SCALE_CONTROL;
+
+	float INTERACTIVE_MARKER_SCALE;
+	float ARROW_INTERACTIVE_SCALE;
 };
 } //end of namespace moveit_cartesian_planner
 

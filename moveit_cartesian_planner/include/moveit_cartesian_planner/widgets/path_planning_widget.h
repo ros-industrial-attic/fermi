@@ -29,7 +29,16 @@
 #include <QDataStream>
 #include <QString>
 #include <QFileDialog>
- #include <QMessageBox>
+#include <QMessageBox>
+
+// macros
+#ifndef DEG2RAD
+#define DEG2RAD(x) ((x)*0.017453293)
+#endif
+
+#ifndef RAD2DEG
+#define RAD2DEG(x) ((x)*57.29578)
+#endif
 
 namespace moveit_cartesian_planner
 {

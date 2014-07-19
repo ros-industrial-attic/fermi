@@ -1,5 +1,6 @@
 #include <moveit_cartesian_planner/add_way_point.h>
 
+
 #ifndef DEG2RAD
 #define DEG2RAD(x) ((x)*0.017453293)
 #endif
@@ -11,6 +12,7 @@
 //ToDo: add constans for marker creating, control, color and other visualizations!!!!
 //ToDo: way-points are redrawn all the time on update, while the interactive marker is not, resolve this issue
 //so that the way-points are not redrawn all the time. The user should see all components of the scene all the time
+
 namespace moveit_cartesian_planner
 {
 
@@ -21,6 +23,42 @@ AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_()//,  target_
      point_sub_.subscribe(n_, "/clicked_point", 10);
      tf_filter_ = new tf::MessageFilter<geometry_msgs::PointStamped>(point_sub_, tf_, target_frame_, 10);
      tf_filter_->registerCallback( boost::bind(&AddWayPoint::msgCallback, this, _1) );
+
+     //initialize constants
+     //1 define way point color when inside the IK solution
+      WAY_POINT_COLOR.r = 0.10;
+      WAY_POINT_COLOR.g = 0.20;
+      WAY_POINT_COLOR.b = 0.4;
+      WAY_POINT_COLOR.a = 1.0;
+
+      //set the color for the way-point when is outside the IK solution
+      WAY_POINT_COLOR_OUTSIDE_IK.r = 1.0;
+      WAY_POINT_COLOR_OUTSIDE_IK.g = 1.0;
+      WAY_POINT_COLOR_OUTSIDE_IK.b = 0.0;
+      WAY_POINT_COLOR_OUTSIDE_IK.a = 1.0;
+
+      //define the scale of the way-point
+      WAY_POINT_SCALE_CONTROL.x = 0.28;
+      WAY_POINT_SCALE_CONTROL.y = 0.032;
+      WAY_POINT_SCALE_CONTROL.z = 0.032;
+
+      //interactive marker scale constant
+      INTERACTIVE_MARKER_SCALE = 0.4;
+
+      //constants for the interactive_arrow that allows adding new waypoints
+      ARROW_INTER_COLOR.r = 0.8;
+      ARROW_INTER_COLOR.g = 0.2;
+      ARROW_INTER_COLOR.b = 0.1;
+      ARROW_INTER_COLOR.a = 1.0;
+
+      //define the scale of the interaction arrow
+      ARROW_INTER_SCALE_CONTROL.x = 0.27;
+      ARROW_INTER_SCALE_CONTROL.y = 0.03;
+      ARROW_INTER_SCALE_CONTROL.z = 0.03;
+
+      //interaction arrrow scale factor
+      ARROW_INTERACTIVE_SCALE = 0.3;
+
      ROS_INFO("Constructor created;");
 }
 
@@ -48,7 +86,7 @@ void AddWayPoint::onInitialize()
 
     ROS_INFO("Initializing path planning widget");
 
-    connect(path_generate,SIGNAL(getRobotModelFrame_signal(const std::string)),this,SLOT(getRobotModelFrame_slot(const std::string)));
+    connect(path_generate,SIGNAL(getRobotModelFrame_signal(const std::string,const tf::Transform)),this,SLOT(getRobotModelFrame_slot(const std::string,const tf::Transform)));
 
     connect(widget_,SIGNAL(addPoint(tf::Transform)),this,SLOT( addPointFromUI( tf::Transform)));
     connect(widget_,SIGNAL(pointDelUI_signal(std::string)),this,SLOT(pointDeleted( std::string)));
@@ -73,9 +111,9 @@ void AddWayPoint::onInitialize()
     Q_EMIT initRviz(); 
 
     //initialize the waypoint count and draw the interaction marker
-    count = 0;
-    makeInteractiveMarker();
-    server->applyChanges();
+    // count = 0;
+    // makeInteractiveMarker();
+    // server->applyChanges();
     
     ROS_INFO("ready.");
       
@@ -135,6 +173,7 @@ void AddWayPoint::addPointFromUI( const tf::Transform point_pos)
 
   ROS_INFO("Point Added");
   makeArrow(point_pos,count);
+  server->applyChanges();
 }
 
 void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback )
@@ -149,11 +188,6 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
     tf::poseMsgToTF(feedback->pose,point_pos);
 
     makeArrow(point_pos,count);
-    //Q_EMIT onUpdatePosCheckIkValidity(feedback->pose,feedback->marker_name.c_str());
-    
-    // if(strcmp(feedback->marker_name.c_str(),"add_point_button")!=0)
-    // Q_EMIT onUpdatePosCheckIkValidity(feedback->pose,atoi(feedback->marker_name.c_str()));
-    //server->applyChanges();
     break;
     }
 
@@ -214,19 +248,15 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
 void AddWayPoint::pointPoseUpdated(const tf::Transform& point_pos, const char* marker_name)
 {
 
+  geometry_msgs::Pose pose;
+  tf::poseTFToMsg(point_pos,pose);
+  std::stringstream s;
+
   if(strcmp("add_point_button",marker_name)==0)
   {
 
         box_pos = point_pos;
-
-        geometry_msgs::Pose pose;
-        tf::poseTFToMsg(point_pos,pose);
-
-        std::stringstream s;
         s << "add_point_button";
-        server->setPose(s.str(),pose);
-        //server->applyChanges();
-        //ROS_INFO("Cube position is updated, %f:",box_pos.getOrigin().x());
   }
   else
      {
@@ -238,50 +268,49 @@ void AddWayPoint::pointPoseUpdated(const tf::Transform& point_pos, const char* m
       }
   
       waypoints_pos[index-1] = point_pos;
-      geometry_msgs::Pose pose;
-      tf::poseTFToMsg(point_pos,pose);
-      
-      std::stringstream s;
+     
+      // std::stringstream s;
       s << index;
-      server->setPose(s.str(),pose);
-      server->applyChanges();
       Q_EMIT onUpdatePosCheckIkValidity(pose,index);    
     }
+
+    server->setPose(s.str(),pose);
+    //server->applyChanges();
+}
+
+Marker AddWayPoint::makeWayPoint( InteractiveMarker &msg )
+{
+    Marker marker;
+
+    marker.type = Marker::ARROW;
+    marker.scale = WAY_POINT_SCALE_CONTROL;
+
+  //make the markers with interesting color
+    marker.color = WAY_POINT_COLOR;
+    marker.action = visualization_msgs::Marker::ADD;
+  return marker;
 }
 
 InteractiveMarkerControl& AddWayPoint::makeArrowControlDefault( InteractiveMarker &msg )
 {
+
   InteractiveMarkerControl control_menu;
   control_menu.always_visible = true;
-
-  Marker marker;
-
-  marker.type = Marker::ARROW;
-  marker.scale.x = msg.scale*0.7;
-  marker.scale.y = msg.scale*0.08;
-  marker.scale.z = msg.scale*0.08;
-
-  //make the markers with interesting color
-  marker.color.r = 0.10;
-  marker.color.g = 0.20;
-  marker.color.b = 0.4;
-  marker.color.a = 1.0;
 
   //make a menu control for the Arrow. This could be used for the user 
   //to delte the arrow on which the mouse pointer is on
   control_menu.interaction_mode = InteractiveMarkerControl::MENU;
   control_menu.name = "menu_select";
   msg.controls.push_back( control_menu );
-  control_menu.markers.push_back( marker );
+  control_menu.markers.push_back( makeWayPoint(msg) );
 
   InteractiveMarkerControl control_move3d;
   control_move3d.interaction_mode = InteractiveMarkerControl::MOVE_ROTATE_3D;
   control_move3d.name = "move";
-  control_move3d.markers.push_back( marker );
+  control_move3d.markers.push_back( makeWayPoint(msg) );
   msg.controls.push_back( control_move3d );
 
   server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
-  //server->applyChanges();
 
   return msg.controls.back();
 
@@ -289,29 +318,16 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDefault( InteractiveMarke
 
 InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarker &msg )
 {
+
   InteractiveMarkerControl control_menu;
   control_menu.always_visible = true;
-
-  Marker marker;
-
-  marker.type = Marker::ARROW;
-  marker.scale.x = msg.scale*0.7;
-  marker.scale.y = msg.scale*0.08;
-  marker.scale.z = msg.scale*0.08;
-
-  //make the markers with interesting color
-  marker.color.r = 0.10;
-  marker.color.g = 0.20;
-  marker.color.b = 0.4;
-  marker.color.a = 1.0;
-
 
   //make a menu control for the Arrow. This could be used for the user 
   //to delte the arrow on which the mouse pointer is on
   control_menu.interaction_mode = InteractiveMarkerControl::MENU;
   control_menu.name = "menu_select";
   msg.controls.push_back( control_menu );
-  control_menu.markers.push_back( marker );
+  control_menu.markers.push_back(makeWayPoint(msg));
 
 
  InteractiveMarkerControl control_view_details;
@@ -360,11 +376,10 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarke
   control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
   msg.controls.push_back( control_view_details );
 //*****************************************************************
-  control_view_details.markers.push_back( marker );
+  control_view_details.markers.push_back( makeWayPoint(msg) );
   msg.controls.push_back( control_view_details );
 
   server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
-  //server->applyChanges();
 
   return msg.controls.back();
 
@@ -383,17 +398,13 @@ void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
          ROS_DEBUG_STREAM("Markers has frame id: "<< int_marker.header.frame_id);
 
         //static set of the size of the arrow. Can be changed later for estetics.
-        int_marker.scale =0.4;
+        int_marker.scale = INTERACTIVE_MARKER_SCALE;
 
         //move the marker according to the clicked location, there is a problem with this implementation
         tf::poseTFToMsg(point_pos,int_marker.pose);
 
         //check if we have arrow at that location,if not found then add it
         std::vector<tf::Transform >::iterator it_pos  =std::find((waypoints_pos.begin()),(waypoints_pos.end()-1),point_pos);
-
-        //print vector before each arrow create just for debuggin remove it later
-        // for( int i=0;i<waypoints_pos.size();i++)
-        //     ROS_INFO_STREAM( "vecotr at start: \n"<<"x:"<< waypoints_pos[i].x()<<"; " << positions[i].y()<< "; "<<positions[i].z()<<";\n");
 
         // //check the positions and orientations vector if they are emtpy. If they are we have our first marker. Deleted the check of orientations just experimental
         if (waypoints_pos.empty() ) 
@@ -439,7 +450,7 @@ void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
         server->insert( int_marker);
         server->setCallback( int_marker.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
         menu_handler.apply(*server,int_marker.name);
-        server->applyChanges();
+        //server->applyChanges();
         Q_EMIT onUpdatePosCheckIkValidity(int_marker.pose,count_arrow);          
 }
 
@@ -460,16 +471,9 @@ void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_co
       int_marker.controls.clear();
       makeArrowControlDefault(int_marker);
     } 
-    
-     //we can use this in another function if we want to manipulate the pose of the marker.
-    // if (set_pose)
-    //   int_marker.pose = pose;
 
     server->insert( int_marker);
-    //server->applyChanges();
     menu_handler.apply(*server,int_marker.name);
-    // tf::Transform marker_pose;
-    // tf::poseMsgToTF(int_marker.pose,marker_pose);
     Q_EMIT onUpdatePosCheckIkValidity(int_marker.pose,atoi(marker_name.c_str()));
 
 }
@@ -499,21 +503,24 @@ void AddWayPoint::pointDeleted(std::string marker_name)
            server->applyChanges();
 }
 
-InteractiveMarkerControl& AddWayPoint::makeInteractiveMarkerControl( InteractiveMarker &msg )
+Marker AddWayPoint::makeInterArrow( InteractiveMarker &msg )
 {
   //define a marker
   Marker marker;
 
   marker.type = Marker::ARROW;
-  marker.scale.x = msg.scale*0.9;
-  marker.scale.y = msg.scale*0.1;
-  marker.scale.z = msg.scale*0.1;
+  marker.scale = ARROW_INTER_SCALE_CONTROL;
+
 
   //make the markers with interesting color
-  marker.color.r = 0.80;
-  marker.color.g = 0.20;
-  marker.color.b = 0.1;
-  marker.color.a = 1.0;
+  marker.color = ARROW_INTER_COLOR;
+
+  return marker;
+
+}
+
+InteractiveMarkerControl& AddWayPoint::makeInteractiveMarkerControl( InteractiveMarker &msg )
+{
 
   // //control for button interaction
   InteractiveMarkerControl control;
@@ -522,7 +529,7 @@ InteractiveMarkerControl& AddWayPoint::makeInteractiveMarkerControl( Interactive
   control.interaction_mode = InteractiveMarkerControl::BUTTON;
   control.name = "button_interaction";
 
-  control.markers.push_back( marker );
+  control.markers.push_back( makeInterArrow(msg) );
   msg.controls.push_back( control );
 
 
@@ -573,7 +580,7 @@ InteractiveMarkerControl& AddWayPoint::makeInteractiveMarkerControl( Interactive
   control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
   msg.controls.push_back( control_view_details );
 //*****************************************************************
-  control_view_details.markers.push_back( marker );
+  control_view_details.markers.push_back( makeInterArrow(msg) );
   msg.controls.push_back( control_view_details );
   /***************************************************************************************************/
 
@@ -584,16 +591,14 @@ void AddWayPoint::makeInteractiveMarker()
 {
         InteractiveMarker int_marker;
         int_marker.header.frame_id = target_frame_;
-        int_marker.scale = 0.3;
+        int_marker.scale = ARROW_INTERACTIVE_SCALE;
+        //int_marker.scale = 0.3;
         ROS_INFO_STREAM("Marker Frame is:" << target_frame_);
 
-        int_marker.pose.position.x = 0.0;
-        int_marker.pose.position.y = 0.0;
-        int_marker.pose.position.z = 0.0;
+        geometry_msgs::Pose pose;
+        tf::poseTFToMsg(box_pos,int_marker.pose);
 
         int_marker.description = "Interaction Marker";
-
-        box_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(0.0,0.0,0.0));
 
         //button like interactive marker. Detect when we have left click with the mouse and add new arrow then
         int_marker.name = "add_point_button";
@@ -668,7 +673,7 @@ void AddWayPoint::saveWayPointsToFile()
   }
 
 
-    out << YAML::EndSeq;
+      out << YAML::EndSeq;
 
       std::ofstream myfile;
       myfile.open (fileName.toStdString().c_str());
@@ -700,8 +705,6 @@ void AddWayPoint::wayPointOutOfIK_slot(int point_number,int out)
   //InteractiveMarkerControl control;
   int control_size = int_marker.controls.size();
   ROS_INFO_STREAM("size of controls for marker: "<<control_size);
-  // control = int_marker.controls.at(control_size-1);
-  // point_marker = control.markers.at(0);
 
 if(control_size == 0)
 {
@@ -709,40 +712,37 @@ if(control_size == 0)
 }
 else
 {
-  control_size = control_size -1;
+  control_size = control_size-1;
 }
 
   if(out == 1)
   {
-    //point_number = point_number + 1;
    ROS_INFO_STREAM("point which is out of reach is"<<point_number);
   // ROS_INFO_STREAM("the name of the marker is:" << int_marker.name.c_str());
 
     //make the marker outside the IK solution with yellow color
-    int_marker.controls.at(control_size).markers.at(0).color.r = 1.0;
-    int_marker.controls.at(control_size).markers.at(0).color.g = 1.0;
-    int_marker.controls.at(control_size).markers.at(0).color.b = 0.0;
-    int_marker.controls.at(control_size).markers.at(0).color.a = 1.0;
+    int_marker.controls.at(control_size).markers.at(0).color = WAY_POINT_COLOR_OUTSIDE_IK;
 }
 else
 {
 
-    int_marker.controls.at(control_size).markers.at(0).color.r = 0.2;
-    int_marker.controls.at(control_size).markers.at(0).color.g = 0.1;
-    int_marker.controls.at(control_size).markers.at(0).color.b = 0.4;
-    int_marker.controls.at(control_size).markers.at(0).color.a = 1.0;
-
+    int_marker.controls.at(control_size).markers.at(0).color = WAY_POINT_COLOR;
 }
-server->insert( int_marker);
-server->applyChanges();
+    server->insert( int_marker);
+    // server->applyChanges();
 
 }
 
-void AddWayPoint::getRobotModelFrame_slot(const std::string robot_model_frame)
+void AddWayPoint::getRobotModelFrame_slot(const std::string robot_model_frame,const tf::Transform end_effector)
 {
 
   target_frame_.assign(robot_model_frame);
   ROS_INFO_STREAM("The robot model frame is: " << target_frame_);
+  box_pos = end_effector;
+
+  count = 0;
+  makeInteractiveMarker();
+  server->applyChanges();
 }
 
 }//end of namespace for add_way_point

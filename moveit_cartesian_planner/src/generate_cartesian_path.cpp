@@ -36,8 +36,7 @@ void GenerateCartesianPath::init()
 {
   robot_model_loader = robot_model_loader::RobotModelLoader("robot_description"); 
   kinematic_model = moveit::core::RobotModelPtr( robot_model_loader.getModel());
-  std::string robot_modelFrame;
-  robot_modelFrame.assign(kinematic_model->getModelFrame().c_str());
+
   ROS_INFO_STREAM("Model frame: " << kinematic_model->getModelFrame().c_str());
 
   kinematic_state = moveit::core::RobotStatePtr(new robot_state::RobotState(kinematic_model));
@@ -50,14 +49,17 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
 {
 
 
-  move_group_interface::MoveGroup group("manipulator");
-  move_group_interface::MoveGroup::Plan plan;
+    move_group_interface::MoveGroup group("manipulator");
+    move_group_interface::MoveGroup::Plan plan;
 
     moveit_msgs::RobotTrajectory trajectory_;
-    group.setPlanningTime(10.0);//user selectable??? why not!!!
+    group.setPlanningTime(30.0);//user selectable??? why not!!!
     double fraction = group.computeCartesianPath(waypoints,0.01,0.0,trajectory_,false);
     robot_trajectory::RobotTrajectory rt(group.getCurrentState()->getRobotModel(), "manipulator");
+
     rt.setRobotTrajectoryMsg(*group.getCurrentState(), trajectory_);
+
+    ROS_INFO_STREAM("Pose reference frame: " << group.getPoseReferenceFrame ());
 
     // Thrid create a IterativeParabolicTimeParameterization object
   	trajectory_processing::IterativeParabolicTimeParameterization iptp;
@@ -93,5 +95,20 @@ void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& way
 void GenerateCartesianPath::initRviz_done()
 {
   ROS_INFO("RViz is done now we need to emit the signal");
-  Q_EMIT getRobotModelFrame_signal(kinematic_model->getModelFrame().c_str());
+
+  const std::vector< std::string > robot_link_names  = kinematic_model->getLinkModelNames();
+  const int nr_dofs = kinematic_state->getVariableCount();
+
+  std::vector<double> joint_values;
+  kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+
+  for(int i = 0; i < nr_dofs; i++)
+  {
+      ROS_INFO_STREAM("Link Nr.:"<<i<<"Link Name:" << robot_link_names.at(i)<<"Joint values: "<<joint_values[i]);
+  }
+
+  const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(robot_link_names[nr_dofs]);
+  tf::Transform end_effector;
+  tf::transformEigenToTF(end_effector_state, end_effector);
+  Q_EMIT getRobotModelFrame_signal(kinematic_model->getModelFrame().c_str(),end_effector);
 }
