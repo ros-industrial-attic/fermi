@@ -63,8 +63,6 @@ namespace moveit_cartesian_planner
         QAbstractItemModel *model=ui_.treeView->model();
 
         model->setData(model->index(0,0,QModelIndex()),QVariant("add_point_button"),Qt::EditRole);
-        // model->setData(model->index(0,1,QModelIndex()),QVariant("0;0;0;"),Qt::EditRole);
-        // model->setData(model->index(0,2,QModelIndex()),QVariant("0;0;0;1;"),Qt::EditRole);
 
         //update the validator for the lineEdit Point
         pointRange();

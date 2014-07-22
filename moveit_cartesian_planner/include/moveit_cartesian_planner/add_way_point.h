@@ -16,7 +16,6 @@
 #include <interactive_markers/menu_handler.h>
 #include <tf/LinearMath/Vector3.h>
 #include <tf/LinearMath/Scalar.h>
-//#include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PointStamped.h>
 #include <std_msgs/ColorRGBA.h>
@@ -71,8 +70,8 @@ public:
 
 	virtual void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr);
 
-	//function for returning the count of the current points in the rviz enviroment!!
-	virtual int getCount();
+	// //function for returning the count of the current points in the rviz enviroment!!
+	// virtual int getCount();
 
 private:
 	//function for creating a way-point marker

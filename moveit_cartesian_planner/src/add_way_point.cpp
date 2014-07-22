@@ -1,15 +1,5 @@
 #include <moveit_cartesian_planner/add_way_point.h>
 
-
-#ifndef DEG2RAD
-#define DEG2RAD(x) ((x)*0.017453293)
-#endif
-
-#ifndef RAD2DEG
-#define RAD2DEG(x) ((x)*57.29578)
-#endif
-
-//ToDo: add constans for marker creating, control, color and other visualizations!!!!
 //ToDo: way-points are redrawn all the time on update, while the interactive marker is not, resolve this issue
 //so that the way-points are not redrawn all the time. The user should see all components of the scene all the time
 
@@ -83,7 +73,6 @@ void AddWayPoint::onInitialize()
     menu_handler.setCheckState(menu_handler.insert( "Fine adjustment", boost::bind( &AddWayPoint::processFeedback, this, _1 )),interactive_markers::MenuHandler::UNCHECKED);
     
     //make all the necessary connections for the QObject communications
-
     ROS_INFO("Initializing path planning widget");
 
     connect(path_generate,SIGNAL(getRobotModelFrame_signal(const std::string,const tf::Transform)),this,SLOT(getRobotModelFrame_slot(const std::string,const tf::Transform)));
@@ -109,11 +98,6 @@ void AddWayPoint::onInitialize()
     connect(this,SIGNAL(initRviz()),path_generate,SLOT(initRviz_done()));
 
     Q_EMIT initRviz(); 
-
-    //initialize the waypoint count and draw the interaction marker
-    // count = 0;
-    // makeInteractiveMarker();
-    // server->applyChanges();
     
     ROS_INFO("ready.");
       
@@ -162,11 +146,11 @@ void AddWayPoint::msgCallback(const boost::shared_ptr<const geometry_msgs::Point
 
 }
 
-int AddWayPoint::getCount()
-{
+// int AddWayPoint::getCount()
+// {
 
-  return count;
-}
+//   return count;
+// }
 
 void AddWayPoint::addPointFromUI( const tf::Transform point_pos)
 {
@@ -275,7 +259,7 @@ void AddWayPoint::pointPoseUpdated(const tf::Transform& point_pos, const char* m
     }
 
     server->setPose(s.str(),pose);
-    //server->applyChanges();
+    server->applyChanges();
 }
 
 Marker AddWayPoint::makeWayPoint( InteractiveMarker &msg )
@@ -300,11 +284,15 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDefault( InteractiveMarke
   //make a menu control for the Arrow. This could be used for the user 
   //to delte the arrow on which the mouse pointer is on
   control_menu.interaction_mode = InteractiveMarkerControl::MENU;
+
   control_menu.name = "menu_select";
   msg.controls.push_back( control_menu );
   control_menu.markers.push_back( makeWayPoint(msg) );
 
+
   InteractiveMarkerControl control_move3d;
+  control_move3d.always_visible = true;
+
   control_move3d.interaction_mode = InteractiveMarkerControl::MOVE_ROTATE_3D;
   control_move3d.name = "move";
   control_move3d.markers.push_back( makeWayPoint(msg) );
@@ -329,8 +317,8 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarke
   msg.controls.push_back( control_menu );
   control_menu.markers.push_back(makeWayPoint(msg));
 
-
  InteractiveMarkerControl control_view_details;
+ control_view_details.always_visible = true;
 //*************rotate and move around the x-axis********************
   control_view_details.orientation.w = 1;
   control_view_details.orientation.x = 1;
@@ -376,7 +364,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarke
   control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
   msg.controls.push_back( control_view_details );
 //*****************************************************************
-  control_view_details.markers.push_back( makeWayPoint(msg) );
+  control_view_details.markers.push_back( makeInterArrow(msg) );
   msg.controls.push_back( control_view_details );
 
   server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
@@ -404,7 +392,7 @@ void AddWayPoint::makeArrow(const tf::Transform& point_pos,int count_arrow)//
         tf::poseTFToMsg(point_pos,int_marker.pose);
 
         //check if we have arrow at that location,if not found then add it
-        std::vector<tf::Transform >::iterator it_pos  =std::find((waypoints_pos.begin()),(waypoints_pos.end()-1),point_pos);
+        std::vector<tf::Transform >::iterator it_pos = std::find((waypoints_pos.begin()),(waypoints_pos.end()-1),point_pos);
 
         // //check the positions and orientations vector if they are emtpy. If they are we have our first marker. Deleted the check of orientations just experimental
         if (waypoints_pos.empty() ) 
@@ -461,7 +449,7 @@ void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_co
     InteractiveMarker int_marker;
     server->get(marker_name, int_marker);
 
-    if(set_control==true)
+    if(set_control)
     {
       int_marker.controls.clear();
       makeArrowControlDetails(int_marker);
@@ -592,7 +580,7 @@ void AddWayPoint::makeInteractiveMarker()
         InteractiveMarker int_marker;
         int_marker.header.frame_id = target_frame_;
         int_marker.scale = ARROW_INTERACTIVE_SCALE;
-        //int_marker.scale = 0.3;
+
         ROS_INFO_STREAM("Marker Frame is:" << target_frame_);
 
         geometry_msgs::Pose pose;
@@ -619,7 +607,6 @@ void AddWayPoint::parseWayPoints()
   {
 
     tf::poseTFToMsg (waypoints_pos[i], target_pose);
-    //tf::quaternionTFToMsg(orientations[i],target_pose.orientation);
 
     waypoints.push_back(target_pose);
     // ROS_INFO_STREAM( "positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
@@ -693,9 +680,6 @@ void AddWayPoint::clearAllPointsRViz()
 }
 void AddWayPoint::wayPointOutOfIK_slot(int point_number,int out)
 {
-  //  ros::AsyncSpinner spinner(1);
-  // spinner.start();
-
   InteractiveMarker int_marker;
   visualization_msgs::Marker point_marker;
   std::stringstream marker_name;
@@ -718,7 +702,6 @@ else
   if(out == 1)
   {
    ROS_INFO_STREAM("point which is out of reach is"<<point_number);
-  // ROS_INFO_STREAM("the name of the marker is:" << int_marker.name.c_str());
 
     //make the marker outside the IK solution with yellow color
     int_marker.controls.at(control_size).markers.at(0).color = WAY_POINT_COLOR_OUTSIDE_IK;
@@ -729,7 +712,7 @@ else
     int_marker.controls.at(control_size).markers.at(0).color = WAY_POINT_COLOR;
 }
     server->insert( int_marker);
-    // server->applyChanges();
+    //server->applyChanges();
 
 }
 

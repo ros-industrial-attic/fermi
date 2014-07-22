@@ -13,8 +13,6 @@
 #include <moveit_msgs/PlanningScene.h>
 
 #include <ros/ros.h>
-// #include <tf/transform_listener.h>
-// #include <tf/transform_datatypes.h>
 #include <geometry_msgs/PoseArray.h>
 
 
@@ -101,11 +99,6 @@ void GenerateCartesianPath::initRviz_done()
 
   std::vector<double> joint_values;
   kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-
-  for(int i = 0; i < nr_dofs; i++)
-  {
-      ROS_INFO_STREAM("Link Nr.:"<<i<<"Link Name:" << robot_link_names.at(i)<<"Joint values: "<<joint_values[i]);
-  }
 
   const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(robot_link_names[nr_dofs]);
   tf::Transform end_effector;
