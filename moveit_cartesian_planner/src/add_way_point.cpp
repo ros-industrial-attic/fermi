@@ -77,6 +77,8 @@ void AddWayPoint::onInitialize()
 
     connect(path_generate,SIGNAL(getRobotModelFrame_signal(const std::string,const tf::Transform)),this,SLOT(getRobotModelFrame_slot(const std::string,const tf::Transform)));
 
+    connect(path_generate,SIGNAL(getRobotModelFrame_signal(const std::string,const tf::Transform)),widget_,SLOT(setAddPointUIStartPos(const std::string,const tf::Transform)));
+
     connect(widget_,SIGNAL(addPoint(tf::Transform)),this,SLOT( addPointFromUI( tf::Transform)));
     connect(widget_,SIGNAL(pointDelUI_signal(std::string)),this,SLOT(pointDeleted( std::string)));
     connect(this,SIGNAL(addPointRViz(const tf::Transform&,const int)),widget_,SLOT(insertRow(const tf::Transform&,const int)));

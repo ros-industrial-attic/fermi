@@ -59,6 +59,7 @@ namespace moveit_cartesian_planner
 			std::string param_ns_;
 			Ui::PathPlanningWidget ui_;
 			QStandardItemModel* pointDataModel;
+			// tf::Transform textEditStart;
 		private:
 			QStringList pointList;
 			// checks the range of the points and restricts the user entry for deleting
@@ -77,6 +78,7 @@ namespace moveit_cartesian_planner
 			void savePointsToFile();
 			void loadPointsFromFile();
 			void clearAllPoints_slot();
+			void setAddPointUIStartPos(const std::string robot_model_frame,const tf::Transform end_effector);
 		Q_SIGNALS:
 		    void addPoint( const tf::Transform point_pos );
 		    void pointDelUI_signal( std::string marker_name);
