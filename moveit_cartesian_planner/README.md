@@ -30,11 +30,11 @@ $ source devel/setup.bash
 
 ###3.1 Now you can try any preconfigured robot in MoveIt. For example run the following
 ```
-$roslaunch sia20d_moveit_config demo.launch
+$roslaunch motoman_sia20d_moveit_config demo.launch
 ```
 or if you followed the ROS-Industrial tutorials for creating MoveIt package you could also run the following
 ```
-$roslaunch sia20d_moveit_config moveit_planning_execution.launch
+$roslaunch motoman_sia20d_moveit_config moveit_planning_execution.launch
 ```
 
 After this step you can add the new panel from the panel tab of the RViz enviroment. Add InteractiveMarkers to the Displays panel set update topic to /moveit_cartesian_planner/update.
