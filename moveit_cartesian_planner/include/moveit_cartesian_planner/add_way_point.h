@@ -14,6 +14,7 @@
 #include <ros/ros.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
+#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 #include <tf/LinearMath/Vector3.h>
 #include <tf/LinearMath/Scalar.h>
 #include <geometry_msgs/Pose.h>
@@ -89,8 +90,10 @@ private:
 	virtual void changeMarkerControlAndPose(std::string marker_name,bool set_control);
 
 
-	boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
+    boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
 	interactive_markers::MenuHandler menu_handler;
+
+	//InteractiveMarker inter_arrow_marker_;
 
 	std::vector<tf::Transform> waypoints_pos;
 	tf::Transform box_pos;

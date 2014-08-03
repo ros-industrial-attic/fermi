@@ -6,13 +6,14 @@
 namespace moveit_cartesian_planner
 {
 
-AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_()//,  target_frame_("/base_link") //change this depending on the move it frame
+AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_(), server(new interactive_markers::InteractiveMarkerServer("moveit_cartesian_planner","",false))//,  target_frame_("/base_link") //change this depending on the move it frame
 {
 
      setObjectName("MoveItPlanner");
-     point_sub_.subscribe(n_, "/clicked_point", 10);
-     tf_filter_ = new tf::MessageFilter<geometry_msgs::PointStamped>(point_sub_, tf_, target_frame_, 10);
-     tf_filter_->registerCallback( boost::bind(&AddWayPoint::msgCallback, this, _1) );
+
+     // point_sub_.subscribe(n_, "/clicked_point", 10);
+     // tf_filter_ = new tf::MessageFilter<geometry_msgs::PointStamped>(point_sub_, tf_, target_frame_, 10);
+     // tf_filter_->registerCallback( boost::bind(&AddWayPoint::msgCallback, this, _1) );
 
      //initialize constants
      //1 define way point color when inside the IK solution
@@ -26,7 +27,6 @@ AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_()//,  target_
       WAY_POINT_COLOR_OUTSIDE_IK.g = 1.0;
       WAY_POINT_COLOR_OUTSIDE_IK.b = 0.0;
       WAY_POINT_COLOR_OUTSIDE_IK.a = 1.0;
-
       //define the scale of the way-point
       WAY_POINT_SCALE_CONTROL.x = 0.28;
       WAY_POINT_SCALE_CONTROL.y = 0.032;
@@ -55,11 +55,14 @@ AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_()//,  target_
 AddWayPoint::~AddWayPoint()
 {
 
+  server.reset();
+
 }
 
 void AddWayPoint::onInitialize()
 {
 
+     ///rviz_moveit_motion_planning_display/robot_interaction_interactive_marker_topic/update
     // creating main layout
     path_generate = new GenerateCartesianPath();
     widget_ = new widgets::PathPlanningWidget("~");
@@ -67,7 +70,7 @@ void AddWayPoint::onInitialize()
     QHBoxLayout* main_layout = new QHBoxLayout(this);
     main_layout->addWidget(widget_);
 
-    server.reset( new interactive_markers::InteractiveMarkerServer("moveit_cartesian_planner") );
+    // 
     ROS_INFO("initializing..");
     menu_handler.insert( "Delete", boost::bind( &AddWayPoint::processFeedback, this, _1 ) );
     menu_handler.setCheckState(menu_handler.insert( "Fine adjustment", boost::bind( &AddWayPoint::processFeedback, this, _1 )),interactive_markers::MenuHandler::UNCHECKED);
@@ -100,6 +103,8 @@ void AddWayPoint::onInitialize()
     connect(this,SIGNAL(initRviz()),path_generate,SLOT(initRviz_done()));
 
     Q_EMIT initRviz(); 
+
+
     
     ROS_INFO("ready.");
       
@@ -112,7 +117,7 @@ void AddWayPoint::load(const rviz::Config& config)
   ROS_INFO_STREAM("rviz: Initializing the user interaction planning panel");
   if(config.mapGetString("TextEntry",&text_entry))
   {
-    //ROS_INFO_STREAM("Loaded TextEntry with value: "<<text_entry.toStdString());
+    ROS_INFO_STREAM("Loaded TextEntry with value: "<<text_entry.toStdString());
   }
 
   ROS_INFO_STREAM("rviz Initialization Finished reading config file");
@@ -148,11 +153,6 @@ void AddWayPoint::msgCallback(const boost::shared_ptr<const geometry_msgs::Point
 
 }
 
-// int AddWayPoint::getCount()
-// {
-
-//   return count;
-// }
 
 void AddWayPoint::addPointFromUI( const tf::Transform point_pos)
 {
@@ -172,6 +172,7 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
 
     tf::Transform point_pos;
     tf::poseMsgToTF(feedback->pose,point_pos);
+    ROS_INFO_STREAM("on click feedback pose is"<<feedback->pose.position.x<<", "<<feedback->pose.position.y<<", "<<feedback->pose.position.z<<";");
 
     makeArrow(point_pos,count);
     break;
@@ -186,6 +187,7 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
 
       Q_EMIT pointPoseUpdatedRViz(point_pos, feedback->marker_name.c_str());
       ROS_DEBUG_STREAM("in update function, marker name: " << feedback->marker_name.c_str());
+      server->applyChanges();
 
       break;
     }
@@ -366,7 +368,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarke
   control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
   msg.controls.push_back( control_view_details );
 //*****************************************************************
-  control_view_details.markers.push_back( makeInterArrow(msg) );
+  control_view_details.markers.push_back( makeWayPoint(msg) );
   msg.controls.push_back( control_view_details );
 
   server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
@@ -513,91 +515,89 @@ InteractiveMarkerControl& AddWayPoint::makeInteractiveMarkerControl( Interactive
 {
 
   // //control for button interaction
-  InteractiveMarkerControl control;
-  control.always_visible = true;
+  InteractiveMarkerControl control_button;
+  control_button.always_visible = true;
+  control_button.interaction_mode = InteractiveMarkerControl::BUTTON;
+  control_button.name = "button_interaction";
+  control_button.markers.push_back( makeInterArrow(msg) );
 
-  control.interaction_mode = InteractiveMarkerControl::BUTTON;
-  control.name = "button_interaction";
-
-  control.markers.push_back( makeInterArrow(msg) );
-  msg.controls.push_back( control );
-
-
-  /***************************************************************************************************/
-  InteractiveMarkerControl control_view_details;
+  msg.controls.push_back( control_button );
+  //server.reset( new interactive_markers::InteractiveMarkerServer("moveit_cartesian_planner","",false));
+InteractiveMarkerControl control_inter_arrow;
+ control_inter_arrow.always_visible = true;
 //*************rotate and move around the x-axis********************
-  control_view_details.orientation.w = 1;
-  control_view_details.orientation.x = 1;
-  control_view_details.orientation.y = 0;
-  control_view_details.orientation.z = 0;
+  control_inter_arrow.orientation.w = 1;
+  control_inter_arrow.orientation.x = 1;
+  control_inter_arrow.orientation.y = 0;
+  control_inter_arrow.orientation.z = 0;
 
-  control_view_details.name = "rotate_x";
-  control_view_details.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
-  msg.controls.push_back( control_view_details );
+  control_inter_arrow.name = "rotate_x";
+  control_inter_arrow.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  msg.controls.push_back( control_inter_arrow );
 
-  control_view_details.name = "move_x";
-  control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-  msg.controls.push_back( control_view_details );
+  control_inter_arrow.name = "move_x";
+  control_inter_arrow.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  msg.controls.push_back( control_inter_arrow );
 //*****************************************************************
 
 //*************rotate and move around the z-axis********************
-  control_view_details.orientation.w = 1;
-  control_view_details.orientation.x = 0;
-  control_view_details.orientation.y = 1;
-  control_view_details.orientation.z = 0;
+  control_inter_arrow.orientation.w = 1;
+  control_inter_arrow.orientation.x = 0;
+  control_inter_arrow.orientation.y = 1;
+  control_inter_arrow.orientation.z = 0;
 
-  control_view_details.name = "rotate_z";
-  control_view_details.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
-  msg.controls.push_back( control_view_details );
+  control_inter_arrow.name = "rotate_z";
+  control_inter_arrow.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  msg.controls.push_back( control_inter_arrow );
 
-  control_view_details.name = "move_z";
-  control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-  msg.controls.push_back( control_view_details );
+  control_inter_arrow.name = "move_z";
+  control_inter_arrow.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  msg.controls.push_back( control_inter_arrow );
 //*****************************************************************
 
 
 //*************rotate and move around the y-axis********************
-  control_view_details.orientation.w = 1;
-  control_view_details.orientation.x = 0;
-  control_view_details.orientation.y = 0;
-  control_view_details.orientation.z = 1;
+  control_inter_arrow.orientation.w = 1;
+  control_inter_arrow.orientation.x = 0;
+  control_inter_arrow.orientation.y = 0;
+  control_inter_arrow.orientation.z = 1;
 
-  control_view_details.name = "rotate_y";
-  control_view_details.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
-  msg.controls.push_back( control_view_details );
+  control_inter_arrow.name = "rotate_y";
+  control_inter_arrow.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  msg.controls.push_back( control_inter_arrow );
 
-  control_view_details.name = "move_y";
-  control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-  msg.controls.push_back( control_view_details );
+  control_inter_arrow.name = "move_y";
+  control_inter_arrow.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  msg.controls.push_back( control_inter_arrow );
 //*****************************************************************
-  control_view_details.markers.push_back( makeInterArrow(msg) );
-  msg.controls.push_back( control_view_details );
-  /***************************************************************************************************/
+  control_inter_arrow.markers.push_back( makeInterArrow(msg) );
+  //msg.controls.push_back( control_inter_arrow );
+
+  server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 ));
 
   return msg.controls.back();
 }
 
 void AddWayPoint::makeInteractiveMarker()
 {
-        InteractiveMarker int_marker;
-        int_marker.header.frame_id = target_frame_;
-        int_marker.scale = ARROW_INTERACTIVE_SCALE;
+        InteractiveMarker inter_arrow_marker_;
+        inter_arrow_marker_.header.frame_id = target_frame_;
+        inter_arrow_marker_.scale = ARROW_INTERACTIVE_SCALE;
 
         ROS_INFO_STREAM("Marker Frame is:" << target_frame_);
 
         geometry_msgs::Pose pose;
-        tf::poseTFToMsg(box_pos,int_marker.pose);
+        tf::poseTFToMsg(box_pos,inter_arrow_marker_.pose);
 
-        int_marker.description = "Interaction Marker";
+        inter_arrow_marker_.description = "Interaction Marker";
 
         //button like interactive marker. Detect when we have left click with the mouse and add new arrow then
-        int_marker.name = "add_point_button";
+        inter_arrow_marker_.name = "add_point_button";
 
-        makeInteractiveMarkerControl(int_marker);
-
-        server->insert( int_marker);
+        makeInteractiveMarkerControl(inter_arrow_marker_);
+        server->insert( inter_arrow_marker_);
         //add interaction feedback to the markers
-        server->setCallback( int_marker.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
+        server->setCallback( inter_arrow_marker_.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
 }
 void AddWayPoint::parseWayPoints()
 {
@@ -611,8 +611,8 @@ void AddWayPoint::parseWayPoints()
     tf::poseTFToMsg (waypoints_pos[i], target_pose);
 
     waypoints.push_back(target_pose);
-    // ROS_INFO_STREAM( "positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
-    // ROS_INFO_STREAM( "orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
+     ROS_INFO_STREAM( "not in the planner positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
+     ROS_INFO_STREAM( "not in the planner orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
   }
 
   Q_EMIT wayPoints_signal(waypoints);
@@ -720,6 +720,8 @@ else
 
 void AddWayPoint::getRobotModelFrame_slot(const std::string robot_model_frame,const tf::Transform end_effector)
 {
+  //server.reset();
+  // server.reset( new interactive_markers::InteractiveMarkerServer("moveit_cartesian_planner","",false));
 
   target_frame_.assign(robot_model_frame);
   ROS_INFO_STREAM("The robot model frame is: " << target_frame_);

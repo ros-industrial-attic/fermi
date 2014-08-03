@@ -20,14 +20,6 @@ namespace moveit_cartesian_planner
 
 			// initializing gui
 			ui_.setupUi(this);
-      // //set up the starting values for the lineEdit of the positions
-      // ui_.LineEditX->setText("0.0");
-      // ui_.LineEditY->setText("0.0");
-      // ui_.LineEditZ->setText("0.0");
-      // //set up the starting values for the lineEdit of the orientations, in Euler angles
-      // ui_.LineEditRx->setText("0.0");
-      // ui_.LineEditRy->setText("0.0");
-      // ui_.LineEditRz->setText("0.0");
 
       ui_.txtPointName->setText("0");
       QStringList headers;
@@ -393,6 +385,7 @@ void PathPlanningWidget::loadPointsFromFile()
       //clear the treeView
       QAbstractItemModel *model = ui_.treeView->model();
       model->removeRows(0,model->rowCount());
+      ui_.txtPointName->setText("0");
       tf::Transform t;
       t.setIdentity();
       insertRow(t,0); 

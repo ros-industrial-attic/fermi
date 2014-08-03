@@ -15,6 +15,8 @@
 #ifndef GENERATE_CARTESIAN_PATH_H_
 #define GENERATE_CARTESIAN_PATH_H_
 
+typedef boost::shared_ptr<move_group_interface::MoveGroup> MoveGroupPtr;
+
 class GenerateCartesianPath: public QObject
 {
 Q_OBJECT
@@ -33,10 +35,17 @@ Q_SIGNALS:
 	void wayPointOutOfIK(int point_number, int out_of_range); 
 	void getRobotModelFrame_signal(const std::string robot_model_frame,const tf::Transform end_effector);
 protected:
-	robot_model_loader::RobotModelLoader robot_model_loader;
-	moveit::core::RobotModelPtr kinematic_model;
+	//robot_model_loader::RobotModelLoader robot_model_loader;
+	//moveit::core::RobotModelConstPtr kinematic_model;
+	//const robot_model::RobotModelConstPtr &kmodel;
+	
 	moveit::core::RobotStatePtr kinematic_state;
 	const moveit::core::JointModelGroup* joint_model_group;
+
+    MoveGroupPtr moveit_group_;
+    // move_group_interface::MoveGroup::Plan plan;
+    // moveit_msgs::RobotTrajectory trajectory_;
+
 };
 
 #endif // GENERATE_CARTESIAN_PATH_H_
