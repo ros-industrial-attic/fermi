@@ -20,24 +20,16 @@ namespace moveit_cartesian_planner
 
 			// initializing gui
 			ui_.setupUi(this);
-      //set up the starting values for the lineEdit of the positions
-      ui_.LineEditX->setText("0.0");
-      ui_.LineEditY->setText("0.0");
-      ui_.LineEditZ->setText("0.0");
-      //set up the starting values for the lineEdit of the orientations, in Euler angles
-      ui_.LineEditRx->setText("0.0");
-      ui_.LineEditRy->setText("0.0");
-      ui_.LineEditRz->setText("0.0");
 
       ui_.txtPointName->setText("0");
       QStringList headers;
       headers<<tr("Point")<<tr("Position (m)")<<tr("Orientation (deg)");
       PointTreeModel *model = new PointTreeModel(headers,"add_point_button");
       ui_.treeView->setModel(model);
-      ui_.btn_LoadPath->setToolTip(tr("Load way-points from a file"));
-      ui_.btn_SavePath->setToolTip(tr("Save way-points to a file"));
-      ui_.btnAddPoint->setToolTip(tr("Add a New way-point"));
-      ui_.btnRemovePoint->setToolTip(tr("Remove a selected way-point"));
+      ui_.btn_LoadPath->setToolTip(tr("Load Way-Points from a file"));
+      ui_.btn_SavePath->setToolTip(tr("Save Way-Points to a file"));
+      ui_.btnAddPoint->setToolTip(tr("Add a new Way-Point"));
+      ui_.btnRemovePoint->setToolTip(tr("Remove a selected Way-Point"));
 
 			//connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
       connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
@@ -94,15 +86,15 @@ namespace moveit_cartesian_planner
         Q_EMIT addPoint(point_pos);
         //ROS_INFO_STREAM("Quartenion set at point add UI: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
 
-        //reset after adding a point the text fields
-        //set up the starting values for the lineEdit of the positions
-        ui_.LineEditX->setText("0.0");
-        ui_.LineEditY->setText("0.0");
-        ui_.LineEditZ->setText("0.0");
-        //set up the starting values for the lineEdit of the orientations, in Euler angles
-        ui_.LineEditRx->setText("0.0");
-        ui_.LineEditRy->setText("0.0");
-        ui_.LineEditRz->setText("0.0");
+        // //reset after adding a point the text fields
+        // //set up the starting values for the lineEdit of the positions
+        // ui_.LineEditX->setText("0.0");
+        // ui_.LineEditY->setText("0.0");
+        // ui_.LineEditZ->setText("0.0");
+        // //set up the starting values for the lineEdit of the orientations, in Euler angles
+        // ui_.LineEditRx->setText("0.0");
+        // ui_.LineEditRy->setText("0.0");
+        // ui_.LineEditRz->setText("0.0");
 
         pointRange();         
 		}
@@ -235,7 +227,7 @@ namespace moveit_cartesian_planner
       if((strcmp(marker_name,"add_point_button") == 0) || (atoi(marker_name)==0))
       {
           QString pos_s;
-          pos_s = QString::number(point_pos.getOrigin().x()) + "; " + QString::number(point_pos.getOrigin().y()) + "; " + QString::number(point_pos.getOrigin().z()) + ";";
+          pos_s = QString::number(p.x()) + "; " + QString::number(p.y()) + "; " + QString::number(p.z()) + ";";
           QString orient_s;
           orient_s = QString::number(rx) + "; " + QString::number(ry) + "; " + QString::number(rz) + ";";
 
@@ -393,12 +385,35 @@ void PathPlanningWidget::loadPointsFromFile()
       //clear the treeView
       QAbstractItemModel *model = ui_.treeView->model();
       model->removeRows(0,model->rowCount());
+      ui_.txtPointName->setText("0");
       tf::Transform t;
       t.setIdentity();
       insertRow(t,0); 
       pointRange();
 
       Q_EMIT clearAllPoints_signal();
+    }
+    void PathPlanningWidget::setAddPointUIStartPos(const std::string robot_model_frame,const tf::Transform end_effector)
+    {
+
+        tf::Vector3 p = end_effector.getOrigin();
+        tfScalar rx,ry,rz;
+        end_effector.getBasis().getRPY(rx,ry,rz,1);
+
+        rx = RAD2DEG(rx);
+        ry = RAD2DEG(ry);
+        rz = RAD2DEG(rz);
+
+      //set up the starting values for the lineEdit of the positions
+      ui_.LineEditX->setText(QString::number(p.x()));
+      ui_.LineEditY->setText(QString::number(p.y()));
+      ui_.LineEditZ->setText(QString::number(p.z()));
+      //set up the starting values for the lineEdit of the orientations, in Euler angles
+      ui_.LineEditRx->setText(QString::number(rx));
+      ui_.LineEditRy->setText(QString::number(ry));
+      ui_.LineEditRz->setText(QString::number(rz));
+
+
     }
 
   }
