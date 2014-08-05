@@ -1,7 +1,5 @@
 #include <moveit_cartesian_planner/add_way_point.h>
 
-//ToDo: way-points are redrawn all the time on update, while the interactive marker is not, resolve this issue
-//so that the way-points are not redrawn all the time. The user should see all components of the scene all the time
 
 namespace moveit_cartesian_planner
 {
@@ -11,9 +9,9 @@ AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent), tf_(), server(new
 
      setObjectName("MoveItPlanner");
 
-     // point_sub_.subscribe(n_, "/clicked_point", 10);
-     // tf_filter_ = new tf::MessageFilter<geometry_msgs::PointStamped>(point_sub_, tf_, target_frame_, 10);
-     // tf_filter_->registerCallback( boost::bind(&AddWayPoint::msgCallback, this, _1) );
+     point_sub_.subscribe(n_, "/clicked_point", 10);
+     tf_filter_ = new tf::MessageFilter<geometry_msgs::PointStamped>(point_sub_, tf_, target_frame_, 10);
+     tf_filter_->registerCallback( boost::bind(&AddWayPoint::msgCallback, this, _1) );
 
      //initialize constants
      //1 define way point color when inside the IK solution
@@ -302,7 +300,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDefault( InteractiveMarke
   control_move3d.markers.push_back( makeWayPoint(msg) );
   msg.controls.push_back( control_move3d );
 
-  server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
+  //server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
 
   return msg.controls.back();
 
@@ -362,16 +360,21 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarke
 
   control_view_details.name = "rotate_y";
   control_view_details.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+
   msg.controls.push_back( control_view_details );
+
 
   control_view_details.name = "move_y";
   control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-  msg.controls.push_back( control_view_details );
-//*****************************************************************
+  // msg.controls.push_back( control_view_details );
   control_view_details.markers.push_back( makeWayPoint(msg) );
+
   msg.controls.push_back( control_view_details );
 
-  server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
+//*****************************************************************
+ // control_view_details.markers.push_back( makeWayPoint(msg) );
+
+  //server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
 
   return msg.controls.back();
 
@@ -466,6 +469,7 @@ void AddWayPoint::changeMarkerControlAndPose(std::string marker_name,bool set_co
 
     server->insert( int_marker);
     menu_handler.apply(*server,int_marker.name);
+    server->setCallback( int_marker.name, boost::bind( &AddWayPoint::processFeedback, this, _1 )); 
     Q_EMIT onUpdatePosCheckIkValidity(int_marker.pose,atoi(marker_name.c_str()));
 
 }
@@ -573,7 +577,7 @@ InteractiveMarkerControl control_inter_arrow;
   control_inter_arrow.markers.push_back( makeInterArrow(msg) );
   //msg.controls.push_back( control_inter_arrow );
 
-  server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 ));
+ // server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 ));
 
   return msg.controls.back();
 }
@@ -714,18 +718,20 @@ else
     int_marker.controls.at(control_size).markers.at(0).color = WAY_POINT_COLOR;
 }
     server->insert( int_marker);
-    //server->applyChanges();
-
 }
 
 void AddWayPoint::getRobotModelFrame_slot(const std::string robot_model_frame,const tf::Transform end_effector)
 {
-  //server.reset();
-  // server.reset( new interactive_markers::InteractiveMarkerServer("moveit_cartesian_planner","",false));
 
   target_frame_.assign(robot_model_frame);
   ROS_INFO_STREAM("The robot model frame is: " << target_frame_);
   box_pos = end_effector;
+
+  // tf::Vector3 p = box_pos.getOrigin();
+  // tfScalar rx,ry,rz;
+  // box_pos.getBasis().getRPY(rx,ry,rz,1);
+
+  // ROS_INFO_STREAM("end effector position and orientation after tf transform: position:" << end_effector.getOrigin()<<"quartenion: "<<end_effector.getBasis());
 
   count = 0;
   makeInteractiveMarker();

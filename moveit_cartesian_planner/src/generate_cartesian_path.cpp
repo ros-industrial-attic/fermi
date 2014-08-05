@@ -59,12 +59,12 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
     //moveit_group_->setStartState(*kinematic_state);
 
     // //we need to change all the positions and orientations vectors to geometry_msgs::Pose, in the next days work on this
-  for(int i=0;i<waypoints.size();i++)
-  {
+  // for(int i=0;i<waypoints.size();i++)
+  // {
 
-     ROS_INFO_STREAM( "In planner positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
-     ROS_INFO_STREAM( "In planner orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
-  }
+  //    ROS_INFO_STREAM( "In planner positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
+  //    ROS_INFO_STREAM( "In planner orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
+  // }
 
     moveit_msgs::RobotTrajectory trajectory_;
     double fraction = moveit_group_->computeCartesianPath(waypoints,0.01,0.0,trajectory_,false);
@@ -95,7 +95,7 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
 void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& waypoint,const int point_number)
 {
 
-       bool found_ik = kinematic_state->setFromIK(joint_model_group, waypoint, 3, 0.005);
+       bool found_ik = kinematic_state->setFromIK(joint_model_group, waypoint, 2, 0.005);
 
          if(found_ik)
         {
@@ -114,13 +114,14 @@ void GenerateCartesianPath::initRviz_done()
   ROS_INFO("RViz is done now we need to emit the signal");
 
   //const std::vector< std::string > robot_link_names  = kinematic_model->getLinkModelNames();
-  const int nr_dofs = kinematic_state->getVariableCount();
+  //const int nr_dofs = kinematic_state->getVariableCount();
 
-  std::vector<double> joint_values;
-  kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+  // std::vector<double> joint_values;
+  // kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
 
   const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
   tf::Transform end_effector;
   tf::transformEigenToTF(end_effector_state, end_effector);
+
   Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
 }
