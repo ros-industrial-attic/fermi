@@ -87,9 +87,11 @@ void AddWayPoint::onInitialize()
     connect(widget_,SIGNAL(pointPosUpdated_signal(const tf::Transform&,const char*)),this,SLOT(pointPoseUpdated(const tf::Transform&,const char*)));
     connect(this,SIGNAL(pointDeleteRviz(int)),widget_,SLOT(removeRow(int)));
 
+    connect(widget_,SIGNAL(cartesianPathParamsFromUI_signal(double, double, double, bool, bool )),path_generate,SLOT(setCartParams(double, double, double, bool, bool)));
 
     connect(widget_,SIGNAL(parseWayPointBtn_signal()),this,SLOT(parseWayPoints()));
-    connect(this,SIGNAL(wayPoints_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(moveToPose(std::vector<geometry_msgs::Pose>)));
+    //connect(this,SIGNAL(wayPoints_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(moveToPose(std::vector<geometry_msgs::Pose>)));
+    connect(this,SIGNAL(wayPoints_signal(std::vector<geometry_msgs::Pose>)),path_generate,SLOT(cartesianPathHandler(std::vector<geometry_msgs::Pose>)));
     connect(widget_,SIGNAL(saveToFileBtn_press()),this,SLOT(saveWayPointsToFile()));
     connect(widget_,SIGNAL(clearAllPoints_signal()),this,SLOT(clearAllPointsRViz()));
 
@@ -97,6 +99,9 @@ void AddWayPoint::onInitialize()
 
     connect(path_generate,SIGNAL(wayPointOutOfIK(int,int)),this,SLOT(wayPointOutOfIK_slot(int,int)));
     connect(this,SIGNAL(onUpdatePosCheckIkValidity(const geometry_msgs::Pose&, const int)),path_generate,SLOT(checkWayPointValidity(const geometry_msgs::Pose&, const int)));
+
+    connect(path_generate,SIGNAL(cartesianPathExecuteStarted()),widget_,SLOT(cartesianPathStartedHandler()));
+    connect(path_generate,SIGNAL(cartesianPathExecuteFinished()),widget_,SLOT(cartesianPathFinishedHandler()));
     
     connect(this,SIGNAL(initRviz()),path_generate,SLOT(initRviz_done()));
 
@@ -607,6 +612,7 @@ void AddWayPoint::parseWayPoints()
 {
   geometry_msgs::Pose target_pose;
   std::vector<geometry_msgs::Pose> waypoints;
+  //QFuture<void> future = QtConcurrent::run(path_generate, &GenerateCartesianPath::moveToPose,&waypoints);
 
   // //we need to change all the positions and orientations vectors to geometry_msgs::Pose, in the next days work on this
   for(int i=0;i<waypoints_pos.size();i++)
@@ -615,8 +621,8 @@ void AddWayPoint::parseWayPoints()
     tf::poseTFToMsg (waypoints_pos[i], target_pose);
 
     waypoints.push_back(target_pose);
-     ROS_INFO_STREAM( "not in the planner positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
-     ROS_INFO_STREAM( "not in the planner orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
+     //ROS_INFO_STREAM( "not in the planner positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
+     //ROS_INFO_STREAM( "not in the planner orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
   }
 
   Q_EMIT wayPoints_signal(waypoints);

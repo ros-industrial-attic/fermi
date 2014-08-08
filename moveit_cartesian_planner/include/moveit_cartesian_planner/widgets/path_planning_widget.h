@@ -79,6 +79,9 @@ namespace moveit_cartesian_planner
 			void loadPointsFromFile();
 			void clearAllPoints_slot();
 			void setAddPointUIStartPos(const std::string robot_model_frame,const tf::Transform end_effector);
+			void cartesianPathStartedHandler();
+			void cartesianPathFinishedHandler();
+			void sendCartTrajectoryParamsFromUI();
 		Q_SIGNALS:
 		    void addPoint( const tf::Transform point_pos );
 		    void pointDelUI_signal( std::string marker_name);
@@ -86,6 +89,7 @@ namespace moveit_cartesian_planner
 		    void parseWayPointBtn_signal();
 		    void saveToFileBtn_press();
 		    void clearAllPoints_signal();
+		    void cartesianPathParamsFromUI_signal(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_);
 			
 		};
 	}

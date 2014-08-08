@@ -22,6 +22,12 @@ namespace moveit_cartesian_planner
 			ui_.setupUi(this);
 
       ui_.txtPointName->setText("0");
+      //set up the default values for the MoveIt and Cartesian Path 
+      ui_.lnEdit_PlanTime->setText("5.0");
+      ui_.lnEdit_StepSize->setText("0.01");
+      ui_.lnEdit_JmpThresh->setText("0.0");
+      
+
       QStringList headers;
       headers<<tr("Point")<<tr("Position (m)")<<tr("Orientation (deg)");
       PointTreeModel *model = new PointTreeModel(headers,"add_point_button");
@@ -36,12 +42,30 @@ namespace moveit_cartesian_planner
       connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(pointDeletedUI()));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
       connect(ui_.treeView->model(),SIGNAL(dataChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex&,const QModelIndex&)));
+      connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(sendCartTrajectoryParamsFromUI()));
       connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(parseWayPointBtn_slot()));
       connect(ui_.btn_LoadPath,SIGNAL(clicked()),this,SLOT(loadPointsFromFile()));
       connect(ui_.btn_SavePath,SIGNAL(clicked()),this,SLOT(savePointsToFile()));
       connect(ui_.btn_ClearAllPoints,SIGNAL(clicked()),this,SLOT(clearAllPoints_slot()));
       
 		}
+
+    void PathPlanningWidget::sendCartTrajectoryParamsFromUI()
+    {
+
+        double plan_time_,cart_step_size_,cart_jump_thresh_;
+        bool moveit_replan_,avoid_collisions_;
+
+        plan_time_        = ui_.lnEdit_PlanTime->text().toDouble();
+        cart_step_size_   = ui_.lnEdit_StepSize->text().toDouble();
+        cart_jump_thresh_ = ui_.lnEdit_JmpThresh->text().toDouble();
+
+        moveit_replan_    = ui_.chk_AllowReplanning->isChecked();
+        avoid_collisions_ = ui_.chk_AvoidColl->isChecked();
+
+        Q_EMIT cartesianPathParamsFromUI_signal(plan_time_,cart_step_size_,cart_jump_thresh_,moveit_replan_,avoid_collisions_);
+
+    }
     void PathPlanningWidget::pointRange()
     {
       QAbstractItemModel *model=ui_.treeView->model();
@@ -413,6 +437,21 @@ void PathPlanningWidget::loadPointsFromFile()
       ui_.LineEditRy->setText(QString::number(ry));
       ui_.LineEditRz->setText(QString::number(rz));
 
+
+    }
+
+    void PathPlanningWidget::cartesianPathStartedHandler()
+    {
+
+      ui_.tabWidget->setEnabled(false);
+      ui_.targetPoint->setEnabled(false);
+      
+    }
+    void PathPlanningWidget::cartesianPathFinishedHandler()
+    {
+
+      ui_.tabWidget->setEnabled(true);
+      ui_.targetPoint->setEnabled(true);
 
     }
 
