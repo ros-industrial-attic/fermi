@@ -37,9 +37,6 @@
 #include <QObject>
 #include <QKeyEvent>
 #include <QHBoxLayout>
-#include <QTimer>
-#include <QtConcurrentRun>
-#include <QFuture>
 
 #endif
 

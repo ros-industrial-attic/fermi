@@ -32,10 +32,15 @@ GenerateCartesianPath::~GenerateCartesianPath()
 void GenerateCartesianPath::init()
 {
 
-  moveit_group_ = MoveGroupPtr(new move_group_interface::MoveGroup("manipulator"));
+  //kinematic_model = moveit::core::RobotModelPtr( robot_model_loader::RobotModelLoader("robot_description").getModel());
+  //robot_model_loader = robot_model_loader::RobotModelLoader("robot_description"); 
+  moveit_group_.reset(new move_group_interface::MoveGroup("manipulator"));
 
-  // moveit_group_->setPlanningTime(5.0);//user selectable??? why not!!
+  moveit_group_->setPlanningTime(10.0);//user selectable??? why not!!
+  moveit_group_->allowReplanning (true);
+  //kinematic_model = moveit::core::RobotModelPtr( moveit_group_->getCurrentState()->getRobotModel());
 
+  //ROS_INFO_STREAM("Model frame: " << kinematic_model->getModelFrame().c_str());
 
   kinematic_state = moveit::core::RobotStatePtr(moveit_group_->getCurrentState());
   kinematic_state->setToDefaultValues(); 
@@ -46,32 +51,23 @@ void GenerateCartesianPath::init()
 
 
 }
-void GenerateCartesianPath::setCartParams(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_)
-{
-  ROS_INFO_STREAM("MoveIt and Cartesian Path parameters from UI:\n MoveIt Plan Time:"<<plan_time_
-                  <<"\n Cartesian Path Step Size:"<<cart_step_size_
-                  <<"\n Jump Threshold:"<<cart_jump_thresh_
-                  <<"\n Replanning:"<<moveit_replan_
-                  <<"\n Avoid Collisions:"<<avoid_collisions_);
-
-  PLAN_TIME_        = plan_time_;
-  MOVEIT_REPLAN_    = moveit_replan_;
-  CART_STEP_SIZE_   = cart_step_size_;
-  CART_JUMP_THRESH_ = cart_jump_thresh_;
-  AVOID_COLLISIONS_ = avoid_collisions_;
-}
 
 void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoints)
 {
-    Q_EMIT cartesianPathExecuteStarted();
-
-    moveit_group_->setPlanningTime(PLAN_TIME_);
-    moveit_group_->allowReplanning (MOVEIT_REPLAN_);
-
+    // move_group_interface::MoveGroup group("manipulator");
     move_group_interface::MoveGroup::Plan plan;
+    //moveit_group_->setStartState(*kinematic_state);
+
+    // //we need to change all the positions and orientations vectors to geometry_msgs::Pose, in the next days work on this
+  for(int i=0;i<waypoints.size();i++)
+  {
+
+     ROS_INFO_STREAM( "In planner positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
+     ROS_INFO_STREAM( "In planner orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
+  }
 
     moveit_msgs::RobotTrajectory trajectory_;
-    double fraction = moveit_group_->computeCartesianPath(waypoints,CART_STEP_SIZE_,CART_JUMP_THRESH_,trajectory_,AVOID_COLLISIONS_);
+    double fraction = moveit_group_->computeCartesianPath(waypoints,0.01,0.0,trajectory_,false);
     robot_trajectory::RobotTrajectory rt(kinematic_state->getRobotModel(), "manipulator");
 
     rt.setRobotTrajectoryMsg(*kinematic_state, trajectory_);
@@ -90,24 +86,16 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
   	plan.trajectory_ = trajectory_;
   	ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)",fraction * 100.0);  
  
+
   	moveit_group_->execute(plan);
 
     kinematic_state = moveit_group_->getCurrentState();
-
-    Q_EMIT cartesianPathExecuteFinished();
 }
-
-void GenerateCartesianPath::cartesianPathHandler(std::vector<geometry_msgs::Pose> waypoints)
-{
-  ROS_INFO("Starting concurrent process for Cartesian Path");
-  QFuture<void> future = QtConcurrent::run(this, &GenerateCartesianPath::moveToPose, waypoints);
-}
-
-
 
 void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& waypoint,const int point_number)
 {
-       bool found_ik = kinematic_state->setFromIK(joint_model_group, waypoint, 3, 0.001);
+
+       bool found_ik = kinematic_state->setFromIK(joint_model_group, waypoint, 3, 0.005);
 
          if(found_ik)
         {
@@ -120,21 +108,19 @@ void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& way
           Q_EMIT wayPointOutOfIK(point_number,1); 
         }
 }
-//doesnt make sense to put it in concurent process, the update is not realistic
-// void GenerateCartesianPath::checkWayPointValidityHandler(const geometry_msgs::Pose& waypoint,const int point_number)
-// {
-//     ROS_INFO("Concurrent process for the Point out of IK range");
-//     QFuture<void> future = QtConcurrent::run(this, &GenerateCartesianPath::checkWayPointValidity, waypoint,point_number);
-
-// }
 
 void GenerateCartesianPath::initRviz_done()
 {
   ROS_INFO("RViz is done now we need to emit the signal");
 
+  //const std::vector< std::string > robot_link_names  = kinematic_model->getLinkModelNames();
+  const int nr_dofs = kinematic_state->getVariableCount();
+
+  std::vector<double> joint_values;
+  kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+
   const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
   tf::Transform end_effector;
   tf::transformEigenToTF(end_effector_state, end_effector);
-
   Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
 }
