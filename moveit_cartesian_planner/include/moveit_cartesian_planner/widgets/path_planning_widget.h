@@ -30,6 +30,7 @@
 #include <QString>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QProgressBar>
 
 // macros
 #ifndef DEG2RAD

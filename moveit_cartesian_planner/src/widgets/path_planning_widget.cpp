@@ -26,6 +26,16 @@ namespace moveit_cartesian_planner
       ui_.lnEdit_PlanTime->setText("5.0");
       ui_.lnEdit_StepSize->setText("0.01");
       ui_.lnEdit_JmpThresh->setText("0.0");
+
+      //set validators for the entries
+      ui_.lnEdit_PlanTime->setValidator(new QDoubleValidator(1.0,100.0,2,ui_.lnEdit_PlanTime));
+      ui_.lnEdit_StepSize->setValidator(new QDoubleValidator(0.001,0.1,3,ui_.lnEdit_StepSize));
+      ui_.lnEdit_JmpThresh->setValidator(new QDoubleValidator(0.0,1000.0,3,ui_.lnEdit_JmpThresh));
+
+      //set progress bar when loading way-points from a yaml file. Could be nice when loading large way-points files
+      ui_.progressBar->setRange(0,100);
+      ui_.progressBar->setValue(0);
+      ui_.progressBar->hide();
       
 
       QStringList headers;
@@ -341,6 +351,8 @@ namespace moveit_cartesian_planner
 
 void PathPlanningWidget::loadPointsFromFile()
 {
+  ui_.progressBar->show();
+  ui_.tabWidget->setEnabled(false);
 
    QString fileName = QFileDialog::getOpenFileName(this,
          tr("Open Way Points File"), "",
@@ -372,7 +384,11 @@ void PathPlanningWidget::loadPointsFromFile()
         parser.GetNextDocument(doc);
     #endif
 
-        for (size_t i = 0; i < doc.size(); i++) {
+        //define double for percent of completion
+        double percent_complete;
+        int end_of_doc = doc.size();
+
+        for (size_t i = 0; i < end_of_doc; i++) {
           std::string name;
           geometry_msgs::Pose pose;
           tf::Transform pose_tf;
@@ -392,10 +408,13 @@ void PathPlanningWidget::loadPointsFromFile()
 
           pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
 
-
+          percent_complete = (i+1)*100/end_of_doc;
+          ui_.progressBar->setValue(percent_complete);
           Q_EMIT addPoint(pose_tf);
         }
       }
+      ui_.progressBar->hide();
+      ui_.tabWidget->setEnabled(true);
 
     }
     void PathPlanningWidget::savePointsToFile()
