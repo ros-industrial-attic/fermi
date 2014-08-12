@@ -9,6 +9,9 @@ namespace moveit_cartesian_planner
 		PathPlanningWidget::PathPlanningWidget(std::string ns):
 		param_ns_(ns)
 		{
+      /*! Constructor which calls the init() function.
+
+      */
 			init();
 		}
 		PathPlanningWidget::~PathPlanningWidget()
@@ -18,7 +21,15 @@ namespace moveit_cartesian_planner
 		void PathPlanningWidget::init()
 		{
 
-			// initializing gui
+			/*! Initializing the RQT UI. Setting up the default values for the UI components:
+            - Default Values for the MoveIt and Cartesian Path
+            - Validators for the MoveIt and Cartesian Path entries
+              - the MoveIt planning time allowed range is set from 1.0 to 1000.0 seconds
+              - the MoveIt StepSize allowed range is set from 0.001 to 0.1 meters
+              - the Jump Threshold for the IK solutions is set from 0.0 to 10000.0
+              .
+            .
+      */
 			ui_.setupUi(this);
 
       ui_.txtPointName->setText("0");
@@ -26,6 +37,16 @@ namespace moveit_cartesian_planner
       ui_.lnEdit_PlanTime->setText("5.0");
       ui_.lnEdit_StepSize->setText("0.01");
       ui_.lnEdit_JmpThresh->setText("0.0");
+
+      //set validators for the entries
+      ui_.lnEdit_PlanTime->setValidator(new QDoubleValidator(1.0,100.0,2,ui_.lnEdit_PlanTime));
+      ui_.lnEdit_StepSize->setValidator(new QDoubleValidator(0.001,0.1,3,ui_.lnEdit_StepSize));
+      ui_.lnEdit_JmpThresh->setValidator(new QDoubleValidator(0.0,1000.0,3,ui_.lnEdit_JmpThresh));
+
+      //set progress bar when loading way-points from a yaml file. Could be nice when loading large way-points files
+      ui_.progressBar->setRange(0,100);
+      ui_.progressBar->setValue(0);
+      ui_.progressBar->hide();
       
 
       QStringList headers;
@@ -37,7 +58,6 @@ namespace moveit_cartesian_planner
       ui_.btnAddPoint->setToolTip(tr("Add a new Way-Point"));
       ui_.btnRemovePoint->setToolTip(tr("Remove a selected Way-Point"));
 
-			//connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
       connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
       connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(pointDeletedUI()));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
@@ -52,7 +72,8 @@ namespace moveit_cartesian_planner
 
     void PathPlanningWidget::sendCartTrajectoryParamsFromUI()
     {
-
+        /*! This function takes care of sending the User Entered parameters from the RQT to the Cartesian Path Planner.
+        */
         double plan_time_,cart_step_size_,cart_jump_thresh_;
         bool moveit_replan_,avoid_collisions_;
 
@@ -68,6 +89,10 @@ namespace moveit_cartesian_planner
     }
     void PathPlanningWidget::pointRange()
     {
+      /*! Get the current range of points from the TreeView. 
+          This is essential for setting up the number of the item that should be run next. 
+          Dealing with the data in the TreeView
+      */
       QAbstractItemModel *model=ui_.treeView->model();
       int count = model->rowCount()-1;
       ui_.txtPointName->setValidator(new QIntValidator(1,count,ui_.txtPointName));
@@ -75,7 +100,9 @@ namespace moveit_cartesian_planner
 
     void PathPlanningWidget::initTreeView()
     {
+       /*! Initialize the Qt TreeView and set the initial value of the User Interaction arrow.
 
+       */
         QAbstractItemModel *model=ui_.treeView->model();
 
         model->setData(model->index(0,0,QModelIndex()),QVariant("add_point_button"),Qt::EditRole);
@@ -85,6 +112,9 @@ namespace moveit_cartesian_planner
     }
     void PathPlanningWidget::selectedPoint(const QModelIndex& current, const QModelIndex& previous)
     {
+      /*! Get the selected point from the TreeView. 
+          This is used for updating the information of the lineEdit which informs gives the number of the currently selected Way-Point.
+      */
       ROS_INFO("Selected Index Changed");
 
        if(current.parent()==QModelIndex())
@@ -96,7 +126,10 @@ namespace moveit_cartesian_planner
     }
 		void PathPlanningWidget::pointAddUI()
 		{
-
+        /*! Function for adding new Way-Point from the RQT Widget. 
+        The user can set the position and orientation of the Way-Point by entering their values in the LineEdit fields.
+        This function is connected to the AddPoint button click() signal and sends the addPoint(point_pos) to inform the RViz enviroment that a new Way-Point has been added.
+        */
         double x,y,z,rx,ry,rz;
         x = ui_.LineEditX->text().toDouble();
         y = ui_.LineEditY->text().toDouble();
@@ -124,6 +157,10 @@ namespace moveit_cartesian_planner
 		}
     void PathPlanningWidget::pointDeletedUI()
     {
+       /*! Function for deleting a Way-Point from the RQT GUI. 
+           The name of the Way-Point that needs to be deleted corresponds to the txtPointName line edit field.
+           This slot is connected to the Remove Point button signal. After completion of this function a signal is send to Inform the RViz enviroment that a Way-Point has been deleted from the RQT Widget.
+       */
         std::string marker_name;
         QString qtPointNr = ui_.txtPointName->text();
         marker_name = qtPointNr.toUtf8().constData();
@@ -139,6 +176,10 @@ namespace moveit_cartesian_planner
     }
     void PathPlanningWidget::insertRow(const tf::Transform& point_pos,const int count)
     {
+      /*! Whenever we have a new Way-Point insereted either from the RViz or the RQT Widget the the TreeView needs to update the information and insert new row that corresponds to the new insered point.
+          This function takes care of parsing the data recieved from the RViz or the RQT widget and creating new row with the appropriate data format and Children. One for the position giving us the current position of the Way-Point in all the axis.
+          One child for the orientation giving us the Euler Angles of each axis.
+      */
 
       ROS_INFO("inserting new row in the TreeView");
       QAbstractItemModel *model = ui_.treeView->model();
@@ -218,6 +259,8 @@ namespace moveit_cartesian_planner
     }
     void PathPlanningWidget::removeRow(int marker_nr)
     {
+      /*! When the user deletes certain Way-Point either from the RViz or the RQT Widget the TreeView needs to delete that particular row and update the state of the TreeWidget.
+      */
         QAbstractItemModel *model = ui_.treeView->model();
 
           model->removeRow(marker_nr,QModelIndex());
@@ -235,7 +278,9 @@ namespace moveit_cartesian_planner
 
     void PathPlanningWidget::pointPosUpdated_slot(const tf::Transform& point_pos, const char* marker_name)
     {
+        /*! When the user updates the position of the Way-Point or the User Interactive Marker, the information in the TreeView also needs to be updated to correspond to the current pose of the InteractiveMarkers.
 
+        */
         QAbstractItemModel *model = ui_.treeView->model();
 
         ROS_INFO_STREAM("Updating marker name:"<<marker_name);
@@ -293,7 +338,9 @@ namespace moveit_cartesian_planner
 
     void PathPlanningWidget::treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2)
     {
-
+      /*! This function handles the user interactions in the TreeView Widget.
+          The function captures an event of data change and updates the information in the TreeView and the RViz enviroment.
+      */
       qRegisterMetaType<std::string>("std::string");
       QAbstractItemModel *model = ui_.treeView->model();
       QVariant index_data;
@@ -336,26 +383,38 @@ namespace moveit_cartesian_planner
     }
     void PathPlanningWidget::parseWayPointBtn_slot()
     {
+      /*! Letting know the Cartesian Path Planner Class that the user has pressed the Execute Cartesian Path button.
+      */
       Q_EMIT parseWayPointBtn_signal();
     }
 
 void PathPlanningWidget::loadPointsFromFile()
 {
-
+  /*! Slot that takes care of opening a previously saved Way-Points yaml file.
+      Opens Qt Dialog for selecting the file, opens the file and parses the data. 
+      After reading and parsing the data from the file, the information regarding the pose of the Way-Points is send to the RQT and the RViz so they can update their enviroments.
+  */
    QString fileName = QFileDialog::getOpenFileName(this,
          tr("Open Way Points File"), "",
          tr("Way Points (*.yaml);;All Files (*)"));
 
       if (fileName.isEmpty())
+      {
+         ui_.tabWidget->setEnabled(true);
+         ui_.progressBar->hide();
          return;
+       }
      else {
-
+         ui_.tabWidget->setEnabled(false);
+         ui_.progressBar->show();
          QFile file(fileName);
 
          if (!file.open(QIODevice::ReadOnly)) {
              QMessageBox::information(this, tr("Unable to open file"),
                  file.errorString());
              file.close();
+             ui_.tabWidget->setEnabled(true);
+             ui_.progressBar->hide();
              return;
          }
           //clear all the scene before loading all the new points from the file!!
@@ -372,7 +431,11 @@ void PathPlanningWidget::loadPointsFromFile()
         parser.GetNextDocument(doc);
     #endif
 
-        for (size_t i = 0; i < doc.size(); i++) {
+        //define double for percent of completion
+        double percent_complete;
+        int end_of_doc = doc.size();
+
+        for (size_t i = 0; i < end_of_doc; i++) {
           std::string name;
           geometry_msgs::Pose pose;
           tf::Transform pose_tf;
@@ -392,21 +455,24 @@ void PathPlanningWidget::loadPointsFromFile()
 
           pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
 
-
+          percent_complete = (i+1)*100/end_of_doc;
+          ui_.progressBar->setValue(percent_complete);
           Q_EMIT addPoint(pose_tf);
         }
+        ui_.tabWidget->setEnabled(true);
+        ui_.progressBar->hide();
       }
-
     }
     void PathPlanningWidget::savePointsToFile()
     {
-
+      /*! Just inform the RViz enviroment that Save Way-Points button has been pressed.
+       */
       Q_EMIT saveToFileBtn_press();
-
     }
     void PathPlanningWidget::clearAllPoints_slot()
     {
-      //clear the treeView
+      /*! Clear all the Way-Points from the RViz enviroment and the TreeView.
+      */
       QAbstractItemModel *model = ui_.treeView->model();
       model->removeRows(0,model->rowCount());
       ui_.txtPointName->setText("0");
@@ -419,7 +485,9 @@ void PathPlanningWidget::loadPointsFromFile()
     }
     void PathPlanningWidget::setAddPointUIStartPos(const std::string robot_model_frame,const tf::Transform end_effector)
     {
-
+        /*! Setting the default values for the Add New Way-Point from the RQT. 
+            The information is taken to correspond to the pose of the loaded Robot end-effector.
+        */
         tf::Vector3 p = end_effector.getOrigin();
         tfScalar rx,ry,rz;
         end_effector.getBasis().getRPY(rx,ry,rz,1);
@@ -442,17 +510,28 @@ void PathPlanningWidget::loadPointsFromFile()
 
     void PathPlanningWidget::cartesianPathStartedHandler()
     {
-
+      /*! Disable the RQT Widget when the Cartesian Path is executing.
+      */
       ui_.tabWidget->setEnabled(false);
       ui_.targetPoint->setEnabled(false);
       
     }
     void PathPlanningWidget::cartesianPathFinishedHandler()
     {
-
+      /*! Enable the RQT Widget when the Cartesian Path execution is completed.
+      */
       ui_.tabWidget->setEnabled(true);
       ui_.targetPoint->setEnabled(true);
 
+    }
+    void PathPlanningWidget::cartPathCompleted_slot(double fraction)
+    {
+      /*! Get the information of what is the percentage of completion of the Planned Cartesian path from the Cartesian Path Planner class and display it in Qt label.
+      */
+      fraction = fraction*100.0;
+      fraction = std::floor(fraction * 100 + 0.5)/100;
+
+      ui_.lbl_cartPathCompleted->setText("Cartesian path " + QString::number(fraction) + "% completed.");
     }
 
   }
