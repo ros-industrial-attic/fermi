@@ -6,7 +6,7 @@ There are two types of interactive markers:
   - Each arrow has a menu where the user can either delete the selected arrow or it can change its position and orientation by using the 6DOF marker control.
   - When the way-point is out of the IK solution for the Robot the arrow changes its color from blue to yellow.
   - The RQT UI communicates simultaniously with the RViz enviroment and the User can change the state of a marker either through RViz or the RQT UI 
-  - TreeView represents displays all the added waypoints. The user can manipulate them directly in the TreeView and see their position and orientation of each waypoint.
+  - TreeView displays all the added waypoints. The user can manipulate them directly in the TreeView and see their position and orientation of each waypoint.
   - The user can add new point or delete it through the RQT UI.
   - New tool component has been added for adding Arrows by using a mouse click
 
@@ -21,11 +21,7 @@ $ source devel/setup.bash
 
 ###3.1 Now you can try any preconfigured robot in MoveIt. For example run the following
 ```
-$roslaunch sia20d_moveit_config demo.launch
-```
-or if you followed the ROS-Industrial tutorials for creating MoveIt package you could also run the following
-```
-$roslaunch sia20d_moveit_config moveit_planning_execution.launch
+$roslaunch motoman_sia20d_moveit_config moveit_planning_execution.launch
 ```
 
 After this step you can add the new panel from the panel tab of the RViz enviroment. The Pannel needs to be added manually. Add InteractiveMarkers to the Displays panel set update topic to /moveit_cartesian_planner/update. Only after adding the MoveIt Cartesian Planner from the Panel Menu from the RViz enviroment the topic in the Interactive Markers visual will be visiable.

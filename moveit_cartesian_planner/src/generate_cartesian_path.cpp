@@ -25,18 +25,22 @@ GenerateCartesianPath::GenerateCartesianPath(QObject *parent)
 }
 GenerateCartesianPath::~GenerateCartesianPath()
 {
+  /*! The destructor resets the moveit_group_ and the kinematic_state of the robot.
+  */
   moveit_group_.reset();
   kinematic_state.reset();
 }
 
 void GenerateCartesianPath::init()
 {
-
+  /*! Initialize the MoveIt parameters:
+        - MoveIt group
+        - Kinematic State is the current kinematic congiguration of the Robot
+        - Robot model which handles getting the Robot Model
+        - Joint Model group which are necessary for checking if Way-Point is outside the IK Solution
+        .
+  */
   moveit_group_ = MoveGroupPtr(new move_group_interface::MoveGroup("manipulator"));
-
-  // moveit_group_->setPlanningTime(5.0);//user selectable??? why not!!
-
-
   kinematic_state = moveit::core::RobotStatePtr(moveit_group_->getCurrentState());
   kinematic_state->setToDefaultValues(); 
   
@@ -48,6 +52,9 @@ void GenerateCartesianPath::init()
 }
 void GenerateCartesianPath::setCartParams(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_)
 {
+  /*! Set the necessary parameters for the MoveIt and the Cartesian Path Planning.
+      These parameters correspond to the ones that the user has entered or the default ones before the execution of the Cartesian Path Planner.
+  */
   ROS_INFO_STREAM("MoveIt and Cartesian Path parameters from UI:\n MoveIt Plan Time:"<<plan_time_
                   <<"\n Cartesian Path Step Size:"<<cart_step_size_
                   <<"\n Jump Threshold:"<<cart_jump_thresh_
@@ -63,6 +70,9 @@ void GenerateCartesianPath::setCartParams(double plan_time_,double cart_step_siz
 
 void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoints)
 {
+    /*!
+
+    */
     Q_EMIT cartesianPathExecuteStarted();
 
     moveit_group_->setPlanningTime(PLAN_TIME_);
@@ -88,7 +98,8 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
     rt.getRobotTrajectoryMsg(trajectory_);
     // Finally plan and execute the trajectory
   	plan.trajectory_ = trajectory_;
-  	ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)",fraction * 100.0);  
+  	ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)",fraction * 100.0); 
+    Q_EMIT cartesianPathCompleted(fraction); 
  
   	moveit_group_->execute(plan);
 
@@ -99,6 +110,9 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
 
 void GenerateCartesianPath::cartesianPathHandler(std::vector<geometry_msgs::Pose> waypoints)
 {
+  /*! Since the execution of the Cartesian path is time consuming and can lead to locking up of the Plugin and the RViz enviroment the function for executing the Cartesian Path Plan has been places in separtate thread.
+      This prevents of the RViz and the Plugin to lock.
+  */
   ROS_INFO("Starting concurrent process for Cartesian Path");
   QFuture<void> future = QtConcurrent::run(this, &GenerateCartesianPath::moveToPose, waypoints);
 }
@@ -107,7 +121,10 @@ void GenerateCartesianPath::cartesianPathHandler(std::vector<geometry_msgs::Pose
 
 void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& waypoint,const int point_number)
 {
-       bool found_ik = kinematic_state->setFromIK(joint_model_group, waypoint, 3, 0.001);
+      /*! This function is called every time the user updates the pose of the Way-Point and checks if the Way-Point is within the valid IK solution for the Robot.
+          In the case when a point is outside the valid IK solution this function send a signal to the RViz enviroment to update the color of the Way-Point.
+      */
+       bool found_ik = kinematic_state->setFromIK(joint_model_group, waypoint, 2, 0.001);
 
          if(found_ik)
         {
@@ -120,7 +137,7 @@ void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& way
           Q_EMIT wayPointOutOfIK(point_number,1); 
         }
 }
-//doesnt make sense to put it in concurent process, the update is not realistic
+// //doesnt make sense to put it in concurent process, the update is not realistic
 // void GenerateCartesianPath::checkWayPointValidityHandler(const geometry_msgs::Pose& waypoint,const int point_number)
 // {
 //     ROS_INFO("Concurrent process for the Point out of IK range");
@@ -130,6 +147,10 @@ void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& way
 
 void GenerateCartesianPath::initRviz_done()
 {
+  /*! Once the initialization of the RViz is has finished, this function sends the pose of the robot end-effector and the name of the base frame to the RViz enviroment. 
+      The RViz enviroment sets the User Interactive Marker pose and Add New Way-Point RQT Layout default values based on the end-effector starting position.
+      The transformation frame of the InteractiveMarker is set based on the robot PoseReferenceFrame.
+  */
   ROS_INFO("RViz is done now we need to emit the signal");
 
   const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());

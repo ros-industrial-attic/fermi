@@ -438,6 +438,27 @@ border-color :rgb(48, 48, 48)</string>
         </property>
        </widget>
       </widget>
+      <widget class="QLabel" name="lbl_cartPathCompleted">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>290</y>
+         <width>461</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <weight>75</weight>
+         <italic>true</italic>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </widget>
     </widget>
    </item>
