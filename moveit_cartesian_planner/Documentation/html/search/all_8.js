@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['kinematic_5fstate',['kinematic_state',['../class_generate_cartesian_path.html#a51aee24186699e84655e67b24078be3c',1,'GenerateCartesianPath']]]
+  ['joint_5fmodel_5fgroup',['joint_model_group',['../dc/dd6/class_generate_cartesian_path.html#ae8ccf28add02be98b7544a13ca795fc4',1,'GenerateCartesianPath']]]
 ];
