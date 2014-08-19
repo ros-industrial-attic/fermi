@@ -84,7 +84,7 @@ void AddWayPoint::onInitialize()
     connect(widget_,SIGNAL(addPoint(tf::Transform)),this,SLOT( addPointFromUI( tf::Transform)));
     connect(widget_,SIGNAL(pointDelUI_signal(std::string)),this,SLOT(pointDeleted( std::string)));
     connect(this,SIGNAL(addPointRViz(const tf::Transform&,const int)),widget_,SLOT(insertRow(const tf::Transform&,const int)));
-    //connect(this,SIGNAL(pointPoseUpdatedRViz(const tf::Transform&,const char*)),widget_,SLOT(pointPosUpdated_slot(const tf::Transform&,const char*)));
+    connect(this,SIGNAL(pointPoseUpdatedRViz(const tf::Transform&,const char*)),widget_,SLOT(pointPosUpdated_slot(const tf::Transform&,const char*)));
     connect(widget_,SIGNAL(pointPosUpdated_signal(const tf::Transform&,const char*)),this,SLOT(pointPoseUpdated(const tf::Transform&,const char*)));
     connect(this,SIGNAL(pointDeleteRviz(int)),widget_,SLOT(removeRow(int)));
 
@@ -388,7 +388,7 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarke
 
   control_view_details.name = "move_y";
   control_view_details.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-  // msg.controls.push_back( control_view_details );
+  msg.controls.push_back( control_view_details );
   control_view_details.markers.push_back( makeWayPoint(msg) );
 
   msg.controls.push_back( control_view_details );
