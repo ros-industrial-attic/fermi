@@ -1,0 +1,8 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: fermi_blending_cell_support
+    relative_path: urdf/sia20d_workspace.xacro
+  SRDF:
+    relative_path: config/sia20d_workspace.srdf
+  CONFIG:
+    generated_timestamp: 1409298036
