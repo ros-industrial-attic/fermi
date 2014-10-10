@@ -291,7 +291,7 @@ void AddWayPoint::pointPoseUpdated(const tf::Transform& point_pos, const char* m
     }
 
     server->setPose(s.str(),pose);
-   // server->applyChanges();
+    server->applyChanges();
 
 
 }
