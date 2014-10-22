@@ -8,6 +8,7 @@
 
 
 #include <pluginlib/class_loader.h>
+#include <std_msgs/String.h>
 
 #include <QObject>
 #include <QTimer>
@@ -19,8 +20,9 @@
 #define GENERATE_CARTESIAN_PATH_H_
 
 typedef boost::shared_ptr<move_group_interface::MoveGroup> MoveGroupPtr;
+typedef boost::shared_ptr<robot_model_loader::RobotModelLoader> RobotModelLoaderPtr;
 
-/*! 
+/*!
  *  \brief     Class for setting up the MoveIt enviroment.
  *  \details   The GenerateCartesianPath Class handles all the interactions with the MoveIt enviroment.
  	 		   This Class inherits from the QObject superclass.
@@ -42,12 +44,14 @@ public:
 	virtual ~GenerateCartesianPath();
 	//! Initialization of the necessary MoveIt parameters.
 	void init();
+	//get the current planning group name
+	void getPlanGroupName(const std_msgs::StringConstPtr& msg);
 public Q_SLOTS:
 	//! Get the Way-Points from the RViz enviroment and use them to generate Cartesian Path.
-    void moveToPose(std::vector<geometry_msgs::Pose> waypoints);
-    //! Checks if the Way-Point is in the valid IK solution for the Robot.
+  void moveToPose(std::vector<geometry_msgs::Pose> waypoints);
+  //! Checks if the Way-Point is in the valid IK solution for the Robot.
 	void checkWayPointValidity(const geometry_msgs::Pose& waypoints,const int marker_name);
-	// void checkWayPointValidityHandler(const geometry_msgs::Pose& waypoint,const int point_number);
+    // void checkWayPointValidityHandler(const geometry_msgs::Pose& waypoint,const int point_number);
 	//! Slot for letting the Cartesian Path planning class that the RViz has finished with its initialization.
 	void initRviz_done();
 	//! Function for setting time consuming Cartesian Path Execution function to a separate thread.
@@ -55,11 +59,13 @@ public Q_SLOTS:
 	//! Get the User entered MoveIt and Cartesian Path parameters and pass them to the corresponding private variables.
 	void setCartParams(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_);
 
+	void getSelectedGroupIndex(int index);
+
 	//! Move to starting position of the robot. As loaded by default
 	void moveToHome();
 Q_SIGNALS:
 	//! Let the RViz that a Way-Point is outside the IK solution.
-	void wayPointOutOfIK(int point_number, int out_of_range); 
+	void wayPointOutOfIK(int point_number, int out_of_range);
 	//! Send the pose of the currently loaded Robot Frame to the AddWayPoint and PathPlanningWidget classes.
 	void getRobotModelFrame_signal(const std::string robot_model_frame,const tf::Transform end_effector);
 	//! Let the RQT Widget know that a Cartesian Path Execution has started.
@@ -68,13 +74,22 @@ Q_SIGNALS:
 	void cartesianPathExecuteFinished();
 	//! Send the percantage of successful completion of the Cartesian Path.
 	void cartesianPathCompleted(double fraction);
+	//! Send the planning groups to the GUI
+	void sendCartPlanGroup(std::vector< std::string > group_names);
 protected:
     //! MoveIt protected variables.
 	moveit::core::RobotStatePtr kinematic_state;
 	const moveit::core::JointModelGroup* joint_model_group;
-    MoveGroupPtr moveit_group_;
+  MoveGroupPtr moveit_group_;
+	robot_model::RobotModelConstPtr kmodel;
+	RobotModelLoaderPtr robot_model_loader;
 
-    tf::Transform end_effector;
+	  tf::Transform end_effector;
+
+
+	std::vector< std::string > group_names;
+	int selected_plan_group;
+	std::string target_frame_;
 
     //! MoveIt and Cartesian path parameters set by the user from the QT UI
     //! Parameter for setting the planning time of the MoveIt.
