@@ -80,11 +80,11 @@ protected:
     //! MoveIt protected variables.
 	moveit::core::RobotStatePtr kinematic_state;
 	const moveit::core::JointModelGroup* joint_model_group;
-  MoveGroupPtr moveit_group_;
+  	MoveGroupPtr moveit_group_;
 	robot_model::RobotModelConstPtr kmodel;
 	RobotModelLoaderPtr robot_model_loader;
 
-	  tf::Transform end_effector;
+	tf::Transform end_effector;
 
 
 	std::vector< std::string > group_names;
