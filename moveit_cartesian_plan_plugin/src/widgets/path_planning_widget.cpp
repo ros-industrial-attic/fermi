@@ -259,7 +259,7 @@ namespace moveit_cartesian_plan_plugin
       model->setData(model->index(1, 0, chldind_orient), QVariant("Ry:"), Qt::EditRole);
       model->setData(model->index(2, 0, chldind_orient), QVariant("Rz:"), Qt::EditRole);
 
-      //second we add the current orientation information, for each position axis separately
+      //second we add the current position information, for each position axis separately
       model->setData(model->index(0, 2, chldind_orient), QVariant(orient_x), Qt::EditRole);
       model->setData(model->index(1, 2, chldind_orient), QVariant(orient_y), Qt::EditRole);
       model->setData(model->index(2, 2, chldind_orient), QVariant(orient_z), Qt::EditRole);
@@ -411,81 +411,81 @@ namespace moveit_cartesian_plan_plugin
 
 void PathPlanningWidget::loadPointsFromFile()
 {
-  /*! Slot that takes care of opening a previously saved Way-Points yaml file.
-      Opens Qt Dialog for selecting the file, opens the file and parses the data.
-      After reading and parsing the data from the file, the information regarding the pose of the Way-Points is send to the RQT and the RViz so they can update their enviroments.
-  */
-   QString fileName = QFileDialog::getOpenFileName(this,
-         tr("Open Way Points File"), "",
-         tr("Way Points (*.yaml);;All Files (*)"));
+	/*! Slot that takes care of opening a previously saved Way-Points yaml file.
+			Opens Qt Dialog for selecting the file, opens the file and parses the data.
+			After reading and parsing the data from the file, the information regarding the pose of the Way-Points is send to the RQT and the RViz so they can update their enviroments.
+	*/
+	QString fileName = QFileDialog::getOpenFileName(this,
+				tr("Open Way Points File"), "",
+				tr("Way Points (*.yaml);;All Files (*)"));
 
-      if (fileName.isEmpty())
-      {
-         ui_.tabWidget->setEnabled(true);
-         ui_.progressBar->hide();
-         return;
-       }
-     else {
-         ui_.tabWidget->setEnabled(false);
-         ui_.progressBar->show();
-         QFile file(fileName);
+			if (fileName.isEmpty())
+			{
+				ui_.tabWidget->setEnabled(true);
+				ui_.progressBar->hide();
+				return;
+			}
+		else {
+				ui_.tabWidget->setEnabled(false);
+				ui_.progressBar->show();
+				QFile file(fileName);
 
-         if (!file.open(QIODevice::ReadOnly)) {
-             QMessageBox::information(this, tr("Unable to open file"),
-                 file.errorString());
-             file.close();
-             ui_.tabWidget->setEnabled(true);
-             ui_.progressBar->hide();
-             return;
-         }
-          //clear all the scene before loading all the new points from the file!!
-          clearAllPoints_slot();
+				if (!file.open(QIODevice::ReadOnly)) {
+						QMessageBox::information(this, tr("Unable to open file"),
+								file.errorString());
+						file.close();
+						ui_.tabWidget->setEnabled(true);
+						ui_.progressBar->hide();
+						return;
+				}
+					//clear all the scene before loading all the new points from the file!!
+					clearAllPoints_slot();
 
-          ROS_INFO_STREAM("Opening the file: "<<fileName.toStdString());
-          std::ifstream fin(fileName.toStdString().c_str());
+					ROS_INFO_STREAM("Opening the file: "<<fileName.toStdString());
+					std::string fin(fileName.toStdString());
 
-    YAML::Node doc;
-    #ifdef HAVE_NEW_YAMLCPP
-       doc = YAML::LoadFile(fin);
-    #else
-        YAML::Parser parser(fin);
-        parser.GetNextDocument(doc);
-    #endif
+		YAML::Node doc;
+		// #ifdef HAVE_NEW_YAMLCPP
+			doc = YAML::LoadFile(fin);
+		// #else
+		//     YAML::Parser parser(fin);
+		//     parser.GetNextDocument(doc);
+		// #endif
 
-        //define double for percent of completion
-        double percent_complete;
-        int end_of_doc = doc.size();
+				//define double for percent of completion
+				double percent_complete;
+				int end_of_doc = doc.size();
 
-        for (size_t i = 0; i < end_of_doc; i++) {
-          std::string name;
-          geometry_msgs::Pose pose;
-          tf::Transform pose_tf;
+				for (size_t i = 0; i < end_of_doc; i++) {
+					std::string name;
+					geometry_msgs::Pose pose;
+					tf::Transform pose_tf;
 
-          double x,y,z,rx, ry, rz;
-          doc[i]["name"] >> name;
-          doc[i]["point"][0] >> x;
-          doc[i]["point"][1] >> y;
-          doc[i]["point"][2] >> z;
-          doc[i]["point"][3] >> rx;
-          doc[i]["point"][4] >> ry;
-          doc[i]["point"][5] >> rz;
+					double x,y,z,rx, ry, rz;
+					name = doc[i]["name"].as<std::string>();
+					x = doc[i]["point"][0].as<double>();
+					y = doc[i]["point"][1].as<double>();
+					z = doc[i]["point"][2].as<double>();
+					rx = doc[i]["point"][3].as<double>();
+					ry = doc[i]["point"][4].as<double>();
+					rz = doc[i]["point"][5].as<double>();
 
-          rx = DEG2RAD(rx);
-          ry = DEG2RAD(ry);
-          rz = DEG2RAD(rz);
+					rx = DEG2RAD(rx);
+					ry = DEG2RAD(ry);
+					rz = DEG2RAD(rz);
 
-          pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
+					pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
 
-          percent_complete = (i+1)*100/end_of_doc;
-          ui_.progressBar->setValue(percent_complete);
-          Q_EMIT addPoint(pose_tf);
-        }
-        ui_.tabWidget->setEnabled(true);
-        ui_.progressBar->hide();
-      }
-    }
-    void PathPlanningWidget::savePointsToFile()
-    {
+					percent_complete = (i+1)*100/end_of_doc;
+					ui_.progressBar->setValue(percent_complete);
+					Q_EMIT addPoint(pose_tf);
+				}
+				ui_.tabWidget->setEnabled(true);
+				ui_.progressBar->hide();
+			}
+}
+void PathPlanningWidget::savePointsToFile()
+{
       /*! Just inform the RViz enviroment that Save Way-Points button has been pressed.
        */
       Q_EMIT saveToFileBtn_press();
