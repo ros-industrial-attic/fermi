@@ -90,6 +90,7 @@ protected:
 	std::vector< std::string > group_names;
 	int selected_plan_group;
 	std::string target_frame_;
+	std::vector< const moveit::core::JointModelGroup * >  end_eff_joint_groups;
 
     //! MoveIt and Cartesian path parameters set by the user from the QT UI
     //! Parameter for setting the planning time of the MoveIt.
