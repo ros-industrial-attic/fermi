@@ -46,7 +46,37 @@ void GenerateCartesianPath::init()
   kmodel = robot_model_loader->getModel();
   //kmodel = robot_model::RobotModelConstPtr(new moveit::core::RobotModel(robot_model_loader->getModel()));
 
-  group_names = kmodel->getJointModelGroupNames();
+  //group_names = kmodel->getJointModelGroupNames();
+
+  end_eff_joint_groups = kmodel->getEndEffectors();
+  
+
+  ROS_INFO_STREAM("size of the end effectors is: "<<end_eff_joint_groups.size());
+
+  if (end_eff_joint_groups.empty())
+  {
+    group_names = kmodel->getJointModelGroupNames();
+  }
+  else
+  {
+  for(int i=0;i<end_eff_joint_groups.size();i++)
+  {
+    // const std::pair< std::string, std::string > & parent_group_name = end_eff_joint_groups.at(i)->getEndEffectorParentGroup();
+    if(end_eff_joint_groups.at(i)->isChain())
+    {
+    const std::string& parent_group_name = end_eff_joint_groups.at(i)->getName();
+    group_names.push_back(parent_group_name);
+
+    ROS_INFO_STREAM("Group name:"<< group_names.at(i));
+    }
+    else
+    {
+        ROS_INFO_STREAM("This group is not a chain. Find the parent of the group");
+        const std::pair< std::string, std::string > & parent_group_name = end_eff_joint_groups.at(i)->getEndEffectorParentGroup();
+        group_names.push_back(parent_group_name.first);
+    }
+  }
+}
 
   ROS_INFO_STREAM("Group name:"<< group_names[selected_plan_group]);
 
@@ -54,7 +84,10 @@ void GenerateCartesianPath::init()
   kinematic_state = moveit::core::RobotStatePtr(new robot_state::RobotState(kmodel));
   kinematic_state->setToDefaultValues();
 
+
+
   joint_model_group = kmodel->getJointModelGroup(group_names[selected_plan_group]);
+
 
 }
 void GenerateCartesianPath::setCartParams(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_)
@@ -96,27 +129,24 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
     ROS_INFO_STREAM("Pose reference frame: " << moveit_group_->getPoseReferenceFrame ());
 
     // Thrid create a IterativeParabolicTimeParameterization object
-  	trajectory_processing::IterativeParabolicTimeParameterization iptp;
-  	bool success = iptp.computeTimeStamps(rt);
-  	ROS_INFO("Computed time stamp %s",success?"SUCCEDED":"FAILED");
+    trajectory_processing::IterativeParabolicTimeParameterization iptp;
+    bool success = iptp.computeTimeStamps(rt);
+    ROS_INFO("Computed time stamp %s",success?"SUCCEDED":"FAILED");
 
 
     // Get RobotTrajectory_msg from RobotTrajectory
     rt.getRobotTrajectoryMsg(trajectory_);
     // Finally plan and execute the trajectory
-  	plan.trajectory_ = trajectory_;
-  	ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)",fraction * 100.0);
+    plan.trajectory_ = trajectory_;
+    ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)",fraction * 100.0);
     Q_EMIT cartesianPathCompleted(fraction);
 
-  	moveit_group_->execute(plan);
+    moveit_group_->execute(plan);
 
     kinematic_state = moveit_group_->getCurrentState();
 
     Q_EMIT cartesianPathExecuteFinished();
 
-    // /*! Update the joint model group so we have more realistic update of the way-points while user updates their pose */
-    // const robot_model::RobotModelConstPtr &kmodel = kinematic_state->getRobotModel();
-    // joint_model_group = kmodel->getJointModelGroup("manipulator");
 }
 
 void GenerateCartesianPath::cartesianPathHandler(std::vector<geometry_msgs::Pose> waypoints)
@@ -148,13 +178,6 @@ void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& way
           Q_EMIT wayPointOutOfIK(point_number,1);
         }
 }
-// //doesnt make sense to put it in concurent process, the update is not realistic
-// void GenerateCartesianPath::checkWayPointValidityHandler(const geometry_msgs::Pose& waypoint,const int point_number)
-// {
-//     ROS_INFO("Concurrent process for the Point out of IK range");
-//     QFuture<void> future = QtConcurrent::run(this, &GenerateCartesianPath::checkWayPointValidity, waypoint,point_number);
-
-// }
 
 void GenerateCartesianPath::initRviz_done()
 {
@@ -164,13 +187,33 @@ void GenerateCartesianPath::initRviz_done()
   */
   ROS_INFO("RViz is done now we need to emit the signal");
 
-  const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
-  //tf::Transform end_effector;
-  tf::transformEigenToTF(end_effector_state, end_effector);
+  if(moveit_group_->getEndEffectorLink().empty())
+  {
+    ROS_INFO("End effector link is empty");
+    const std::vector< std::string > &  joint_names = joint_model_group->getLinkModelNames();
+    for(int i=0;i<joint_names.size();i++)
+    {
+      ROS_INFO_STREAM("Link " << i << " name: "<< joint_names.at(i));
+    }
+    const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(joint_names.at(0));
+    //tf::Transform end_effector;
+    tf::transformEigenToTF(end_effector_state, end_effector);
+    Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+  }
+  else
+  {
 
-  Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+    ROS_INFO("End effector link is not empty");
+    const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
+    //tf::Transform end_effector;
+    tf::transformEigenToTF(end_effector_state, end_effector);
 
-  Q_EMIT sendCartPlanGroup(group_names);
+    Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+  }
+
+    Q_EMIT sendCartPlanGroup(group_names);
+
+
 }
 void GenerateCartesianPath::moveToHome()
 {
@@ -190,8 +233,8 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
   selected_plan_group = index;
 
   ROS_INFO_STREAM("selected name is:"<<group_names[selected_plan_group]);
-  // moveit_group_.reset();
-  // kinematic_state.reset();
+  moveit_group_.reset();
+  kinematic_state.reset();
   moveit_group_ = MoveGroupPtr(new move_group_interface::MoveGroup(group_names[selected_plan_group]));
 
   kinematic_state = moveit::core::RobotStatePtr(new robot_state::RobotState(kmodel));
@@ -199,12 +242,28 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
 
   joint_model_group = kmodel->getJointModelGroup(group_names[selected_plan_group]);
 
-  ROS_INFO("RViz is done now we need to emit the signal");
+  if(moveit_group_->getEndEffectorLink().empty())
+  {
+    ROS_INFO("End effector link is empty");
+    const std::vector< std::string > &  joint_names = joint_model_group->getLinkModelNames();
+    for(int i=0;i<joint_names.size();i++)
+    {
+      ROS_INFO_STREAM("Link " << i << " name: "<< joint_names.at(i));
+    }
+    const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(joint_names.at(0));
+    //tf::Transform end_effector;
+    tf::transformEigenToTF(end_effector_state, end_effector);
+    Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+  }
+  else
+  {
 
-  const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
-  //tf::Transform end_effector;
-  tf::transformEigenToTF(end_effector_state, end_effector);
+    ROS_INFO("End effector link is not empty");
+    const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
+    //tf::Transform end_effector;
+    tf::transformEigenToTF(end_effector_state, end_effector);
 
-  Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+    Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+  }
 
 }

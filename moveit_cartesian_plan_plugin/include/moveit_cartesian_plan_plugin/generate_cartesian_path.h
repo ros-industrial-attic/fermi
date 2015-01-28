@@ -80,16 +80,17 @@ protected:
     //! MoveIt protected variables.
 	moveit::core::RobotStatePtr kinematic_state;
 	const moveit::core::JointModelGroup* joint_model_group;
-  MoveGroupPtr moveit_group_;
+  	MoveGroupPtr moveit_group_;
 	robot_model::RobotModelConstPtr kmodel;
 	RobotModelLoaderPtr robot_model_loader;
 
-	  tf::Transform end_effector;
+	tf::Transform end_effector;
 
 
 	std::vector< std::string > group_names;
 	int selected_plan_group;
 	std::string target_frame_;
+	std::vector< const moveit::core::JointModelGroup * >  end_eff_joint_groups;
 
     //! MoveIt and Cartesian path parameters set by the user from the QT UI
     //! Parameter for setting the planning time of the MoveIt.
