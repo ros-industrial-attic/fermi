@@ -55,7 +55,23 @@ void GenerateCartesianPath::init()
 
   if (end_eff_joint_groups.empty())
   {
-    group_names = kmodel->getJointModelGroupNames();
+    std::vector< std::string > group_names_tmp_;
+    const moveit::core::JointModelGroup *  end_eff_joint_groups_tmp_;
+    group_names_tmp_ = kmodel->getJointModelGroupNames();
+
+    for(int i=0;i<group_names_tmp_.size();i++)
+    {
+
+    end_eff_joint_groups_tmp_ = kmodel->getJointModelGroup(group_names_tmp_.at(i));
+    if(end_eff_joint_groups_tmp_->isChain())
+    {
+      group_names.push_back(group_names_tmp_.at(i));
+    }
+    else
+    {
+      ROS_INFO_STREAM("The group:" << end_eff_joint_groups_tmp_->getName() <<" is not a Chain. Depreciate it!!");
+    }
+    }
   }
   else
   {
@@ -241,22 +257,23 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
   kinematic_state->setToDefaultValues();
 
   joint_model_group = kmodel->getJointModelGroup(group_names[selected_plan_group]);
-
-  if(moveit_group_->getEndEffectorLink().empty())
-  {
-    ROS_INFO("End effector link is empty");
-    const std::vector< std::string > &  joint_names = joint_model_group->getLinkModelNames();
-    for(int i=0;i<joint_names.size();i++)
-    {
-      ROS_INFO_STREAM("Link " << i << " name: "<< joint_names.at(i));
-    }
-    const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(joint_names.at(0));
-    //tf::Transform end_effector;
-    tf::transformEigenToTF(end_effector_state, end_effector);
-    Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
-  }
-  else
-  {
+   
+   //for debugging only. This will be left out after some testing
+  // if(moveit_group_->getEndEffectorLink().empty())
+  // {
+  //   ROS_INFO("End effector link is empty");
+  //   const std::vector< std::string > &  joint_names = joint_model_group->getLinkModelNames();
+  //   for(int i=0;i<joint_names.size();i++)
+  //   {
+  //     ROS_INFO_STREAM("Link " << i << " name: "<< joint_names.at(i));
+  //   }
+  //   const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(joint_names.at(0));
+  //   //tf::Transform end_effector;
+  //   tf::transformEigenToTF(end_effector_state, end_effector);
+  //   Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+  // }
+  // else
+  // {
 
     ROS_INFO("End effector link is not empty");
     const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
@@ -264,6 +281,6 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
     tf::transformEigenToTF(end_effector_state, end_effector);
 
     Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
-  }
+  //}
 
 }
