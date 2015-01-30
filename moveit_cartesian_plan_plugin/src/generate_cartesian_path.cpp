@@ -55,14 +55,42 @@ void GenerateCartesianPath::init()
 
   if (end_eff_joint_groups.empty())
   {
-    group_names = kmodel->getJointModelGroupNames();
+    std::vector< std::string > group_names_tmp_;
+    const moveit::core::JointModelGroup *  end_eff_joint_groups_tmp_;
+    group_names_tmp_ = kmodel->getJointModelGroupNames();
+
+    for(int i=0;i<group_names_tmp_.size();i++)
+    {
+
+    end_eff_joint_groups_tmp_ = kmodel->getJointModelGroup(group_names_tmp_.at(i));
+    if(end_eff_joint_groups_tmp_->isChain())
+    {
+      group_names.push_back(group_names_tmp_.at(i));
+    }
+    else
+    {
+      ROS_INFO_STREAM("The group:" << end_eff_joint_groups_tmp_->getName() <<" is not a Chain. Depreciate it!!");
+    }
+    }
   }
   else
   {
   for(int i=0;i<end_eff_joint_groups.size();i++)
   {
-    const std::pair< std::string, std::string > & parent_group_name = end_eff_joint_groups.at(i)->getEndEffectorParentGroup();
-    group_names.push_back(parent_group_name.first);
+    // const std::pair< std::string, std::string > & parent_group_name = end_eff_joint_groups.at(i)->getEndEffectorParentGroup();
+    if(end_eff_joint_groups.at(i)->isChain())
+    {
+    const std::string& parent_group_name = end_eff_joint_groups.at(i)->getName();
+    group_names.push_back(parent_group_name);
+
+    ROS_INFO_STREAM("Group name:"<< group_names.at(i));
+    }
+    else
+    {
+        ROS_INFO_STREAM("This group is not a chain. Find the parent of the group");
+        const std::pair< std::string, std::string > & parent_group_name = end_eff_joint_groups.at(i)->getEndEffectorParentGroup();
+        group_names.push_back(parent_group_name.first);
+    }
   }
 }
 
@@ -76,13 +104,6 @@ void GenerateCartesianPath::init()
 
   joint_model_group = kmodel->getJointModelGroup(group_names[selected_plan_group]);
 
-  //ROS_INFO_STREAM("Joint model group " << end_eff_joint_groups[0]->getName());
-
-  // if(joint_model_group->getLinkModelNames().empty())
-  // {
-  //   ROS_INFO_STREAM("Joint model group is empty");
-  //   kinematic_state->getLinkModel(joint_model_group->getLinkModelNames().back());
-  // }
 
 }
 void GenerateCartesianPath::setCartParams(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_)
@@ -124,19 +145,19 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
     ROS_INFO_STREAM("Pose reference frame: " << moveit_group_->getPoseReferenceFrame ());
 
     // Thrid create a IterativeParabolicTimeParameterization object
-  	trajectory_processing::IterativeParabolicTimeParameterization iptp;
-  	bool success = iptp.computeTimeStamps(rt);
-  	ROS_INFO("Computed time stamp %s",success?"SUCCEDED":"FAILED");
+    trajectory_processing::IterativeParabolicTimeParameterization iptp;
+    bool success = iptp.computeTimeStamps(rt);
+    ROS_INFO("Computed time stamp %s",success?"SUCCEDED":"FAILED");
 
 
     // Get RobotTrajectory_msg from RobotTrajectory
     rt.getRobotTrajectoryMsg(trajectory_);
     // Finally plan and execute the trajectory
-  	plan.trajectory_ = trajectory_;
-  	ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)",fraction * 100.0);
+    plan.trajectory_ = trajectory_;
+    ROS_INFO("Visualizing plan (cartesian path) (%.2f%% acheived)",fraction * 100.0);
     Q_EMIT cartesianPathCompleted(fraction);
 
-  	moveit_group_->execute(plan);
+    moveit_group_->execute(plan);
 
     kinematic_state = moveit_group_->getCurrentState();
 
@@ -173,13 +194,6 @@ void GenerateCartesianPath::checkWayPointValidity(const geometry_msgs::Pose& way
           Q_EMIT wayPointOutOfIK(point_number,1);
         }
 }
-// //doesnt make sense to put it in concurent process, the update is not realistic
-// void GenerateCartesianPath::checkWayPointValidityHandler(const geometry_msgs::Pose& waypoint,const int point_number)
-// {
-//     ROS_INFO("Concurrent process for the Point out of IK range");
-//     QFuture<void> future = QtConcurrent::run(this, &GenerateCartesianPath::checkWayPointValidity, waypoint,point_number);
-
-// }
 
 void GenerateCartesianPath::initRviz_done()
 {
@@ -243,22 +257,23 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
   kinematic_state->setToDefaultValues();
 
   joint_model_group = kmodel->getJointModelGroup(group_names[selected_plan_group]);
-
-  if(moveit_group_->getEndEffectorLink().empty())
-  {
-    ROS_INFO("End effector link is empty");
-    const std::vector< std::string > &  joint_names = joint_model_group->getLinkModelNames();
-    for(int i=0;i<joint_names.size();i++)
-    {
-      ROS_INFO_STREAM("Link " << i << " name: "<< joint_names.at(i));
-    }
-    const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(joint_names.at(0));
-    //tf::Transform end_effector;
-    tf::transformEigenToTF(end_effector_state, end_effector);
-    Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
-  }
-  else
-  {
+   
+   //for debugging only. This will be left out after some testing
+  // if(moveit_group_->getEndEffectorLink().empty())
+  // {
+  //   ROS_INFO("End effector link is empty");
+  //   const std::vector< std::string > &  joint_names = joint_model_group->getLinkModelNames();
+  //   for(int i=0;i<joint_names.size();i++)
+  //   {
+  //     ROS_INFO_STREAM("Link " << i << " name: "<< joint_names.at(i));
+  //   }
+  //   const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(joint_names.at(0));
+  //   //tf::Transform end_effector;
+  //   tf::transformEigenToTF(end_effector_state, end_effector);
+  //   Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
+  // }
+  // else
+  // {
 
     ROS_INFO("End effector link is not empty");
     const Eigen::Affine3d &end_effector_state = kinematic_state->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
@@ -266,6 +281,6 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
     tf::transformEigenToTF(end_effector_state, end_effector);
 
     Q_EMIT getRobotModelFrame_signal(moveit_group_->getPoseReferenceFrame(),end_effector);
-  }
+  //}
 
 }
