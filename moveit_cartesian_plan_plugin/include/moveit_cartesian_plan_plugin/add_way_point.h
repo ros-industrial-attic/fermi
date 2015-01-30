@@ -56,7 +56,7 @@ class BoolProperty;
 using namespace visualization_msgs;
 namespace moveit_cartesian_plan_plugin
 {
-/*! 
+/*!
  *  \brief     Class for handling the User Interactions with the RViz enviroment.
  *  \details   The AddWayPoint Class handles all the Visualization in the RViz enviroment.
  	 		   This Class inherits from the rviz::Panel superclass.
@@ -67,7 +67,7 @@ class AddWayPoint: public rviz::Panel
 Q_OBJECT
 public:
 	//! A Constructor for the RViz Panel.
-	AddWayPoint(QWidget* parent = 0); 
+	AddWayPoint(QWidget* parent = 0);
 	//! Virtual Destructor for the RViz Panel.
 	virtual ~AddWayPoint();
     //! RViz panel initialization
@@ -75,13 +75,13 @@ public:
 
 	//! Fucntion for all the interactive marker interactions
 	virtual void processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
-    
+
     //! Make a new Interactive Marker Way-Point
 	virtual void makeArrow(const tf::Transform& point_pos,int count_arrow);
 	//! User Interaction Arrow Marker
 	virtual void makeInteractiveMarker();
 	//! This function listens to the Mouse Interaction Publish Point Topic
-	virtual void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr);
+	// virtual void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr);
 
 private:
 	//! Function for creating a way-point marker
@@ -101,7 +101,7 @@ private:
     //! Define a server for the Interactive Markers.
     boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
 	interactive_markers::MenuHandler menu_handler;
-    
+
     //! Vector for storing all the User Entered Way-Points.
 	std::vector<tf::Transform> waypoints_pos;
 	//! The position of the User handlable Interactive Marker.
@@ -109,15 +109,15 @@ private:
 
     //! Variable for storing the count of the Way-Points.
 	int count;
-    //! Subscriber for the published position of the Mouse Clicks in the RViz Enviroment.
-    message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
-    //! Transformation listener for the clicked Mouse Points.
-    tf::TransformListener tf_;
-    //! Message filter for the Transformation points from the mouse clicks.
-    tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
-    //! NodeHandle for the Mouse Click Points Topic.
-    ros::NodeHandle n_;
-    //! Target Frame for the Transformatio.
+    // //! Subscriber for the published position of the Mouse Clicks in the RViz Enviroment.
+    // message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
+    // //! Transformation listener for the clicked Mouse Points.
+    // tf::TransformListener tf_;
+    // //! Message filter for the Transformation points from the mouse clicks.
+    // tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
+    // //! NodeHandle for the Mouse Click Points Topic.
+    // ros::NodeHandle n_;
+    //! Target Frame for the Transformation.
     std::string target_frame_;
 
 protected Q_SLOTS:
@@ -127,7 +127,7 @@ protected Q_SLOTS:
 	virtual void save(rviz::Config config) const;
 public Q_SLOTS:
 	//! Slot for handling the event of way-point deletion.
-	virtual void pointDeleted(std::string marker_name); 
+	virtual void pointDeleted(std::string marker_name);
 	//! Slot for handling the add way-point event from the RQT UI.
 	void addPointFromUI( const tf::Transform point_pos);
 	//! Slot for handling when the user updates the position of the Interactive Markers.
@@ -147,7 +147,7 @@ Q_SIGNALS:
 	//! Signal for notifying that RViz is done with initialization.
 	void initRviz();
 	//! Signal for notifying that a way-point was deleted in the RViz enviroment.
-	void pointDeleteRviz(int marker_name_nr); 
+	void pointDeleteRviz(int marker_name_nr);
 	//! Signal for notifying that a way-point has been added from the RViz enviroment.
 	void addPointRViz(const tf::Transform& point_pos, const int count);
 	//! Signal that the way-point position has been updated by the user from the RViz enviroment.
@@ -178,5 +178,3 @@ private:
 } //end of namespace moveit_cartesian_plan_plugin
 
 #endif //add_way_point_H_
-
-
