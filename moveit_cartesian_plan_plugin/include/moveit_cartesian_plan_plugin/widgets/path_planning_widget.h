@@ -45,7 +45,7 @@ namespace moveit_cartesian_plan_plugin
 {
 	namespace widgets {
 
-/*! 
+/*!
  *  \brief     Class for handling the User Interactions with the RQT Widget.
  *  \details   The PathPlanningWidget Class handles all User Interactions with the RQT GUI.
  	 		   This Class inherits from the QWidget superclass.
@@ -94,7 +94,7 @@ namespace moveit_cartesian_plan_plugin
 			//! Get the selected Way-Point from the RQT UI.
 			void selectedPoint(const QModelIndex& current, const QModelIndex& previous);
 			//! Handle the even when the data in the TreeView has been changed.
-			void treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2); 
+			void treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2);
 			//! Slot for parsing the Way-Points and notifying the MoveIt.
 			void parseWayPointBtn_slot();
 			//! Send a signal that a save the Way-Points to a file button has been pressed.
@@ -114,7 +114,12 @@ namespace moveit_cartesian_plan_plugin
 			//! Set a label in the RQT to inform the user of the percantage of completion of the Cartesian plan.
 			void cartPathCompleted_slot(double fraction);
 			//update the point in the RQT by using separate thread
-			//void pointPosUpdatedHandler_slot(const tf::Transform& point_pos, const char* marker_name);
+			// void pointPosUpdatedHandler_slot(const tf::Transform& point_pos, const char* marker_name);
+
+			//! Set the planning group ComboBox
+			void getCartPlanGroup(std::vector< std::string > group_names);
+
+			void selectedPlanGroup(int index);
 
 			//! Create a slot to call a signal on which the Move the robot to home position function is called
 			void moveToHomeFromUI();
@@ -136,7 +141,9 @@ namespace moveit_cartesian_plan_plugin
 
 		    //! On this signal we will call the function for which will exectute the MoveIt command to bring the robot in its initial state.
 		    void moveToHomeFromUI_signal();
-			
+
+				void sendSendSelectedPlanGroup(int index);
+
 		};
 	}
 
