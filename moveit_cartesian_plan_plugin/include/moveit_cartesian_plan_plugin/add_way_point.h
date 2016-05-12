@@ -80,8 +80,6 @@ public:
 	virtual void makeArrow(const tf::Transform& point_pos,int count_arrow);
 	//! User Interaction Arrow Marker
 	virtual void makeInteractiveMarker();
-	//! This function listens to the Mouse Interaction Publish Point Topic
-	// virtual void msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr);
 
 private:
 	//! Function for creating a way-point marker
@@ -109,14 +107,6 @@ private:
 
     //! Variable for storing the count of the Way-Points.
 	int count;
-    // //! Subscriber for the published position of the Mouse Clicks in the RViz Enviroment.
-    // message_filters::Subscriber<geometry_msgs::PointStamped> point_sub_;
-    // //! Transformation listener for the clicked Mouse Points.
-    // tf::TransformListener tf_;
-    // //! Message filter for the Transformation points from the mouse clicks.
-    // tf::MessageFilter<geometry_msgs::PointStamped> * tf_filter_;
-    // //! NodeHandle for the Mouse Click Points Topic.
-    // ros::NodeHandle n_;
     //! Target Frame for the Transformation.
     std::string target_frame_;
 

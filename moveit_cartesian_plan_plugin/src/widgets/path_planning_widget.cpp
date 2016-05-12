@@ -62,7 +62,6 @@ namespace moveit_cartesian_plan_plugin
       connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(pointDeletedUI()));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex& , const QModelIndex&)));
-      //connect(ui_.treeView->model(),SIGNAL(dataChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex&,const QModelIndex&)));
       connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(sendCartTrajectoryParamsFromUI()));
       connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(parseWayPointBtn_slot()));
       connect(ui_.btn_LoadPath,SIGNAL(clicked()),this,SLOT(loadPointsFromFile()));
@@ -162,7 +161,6 @@ namespace moveit_cartesian_plan_plugin
         // // create transform
         tf::Transform point_pos( tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z)));
         Q_EMIT addPoint(point_pos);
-        //ROS_INFO_STREAM("Quartenion set at point add UI: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
 
         pointRange();
 		}
@@ -209,7 +207,6 @@ namespace moveit_cartesian_plan_plugin
       }
       else
       {
-      //ROS_INFO_STREAM("Quartenion at add_row: "<<orientation.x()<<"; "<<orientation.y()<<"; "<<orientation.z()<<"; "<<orientation.w()<<";");
 
        if(!model->insertRow(count,model->index(count, 0)))  //&& count==0
        {
@@ -287,21 +284,12 @@ namespace moveit_cartesian_plan_plugin
         pointRange();
     }
 
-    // void PathPlanningWidget::pointPosUpdatedHandler_slot(const tf::Transform& point_pos, const char* marker_name)
-    // {
-    //     ROS_INFO("Starting concurrent process for Way-Point Update in separate thread");
-    //     QFuture<void> future = QtConcurrent::run(this, &PathPlanningWidget::pointPosUpdated_slot, point_pos,marker_name);
-    //     //future.waitForFinished();
-    // }
-
     void PathPlanningWidget::pointPosUpdated_slot(const tf::Transform& point_pos, const char* marker_name)
     {
         /*! When the user updates the position of the Way-Point or the User Interactive Marker, the information in the TreeView also needs to be updated to correspond to the current pose of the InteractiveMarkers.
 
         */
         QAbstractItemModel *model = ui_.treeView->model();
-
-        //ROS_INFO_STREAM("Updating marker name:"<<marker_name);
 
         tf::Vector3 p = point_pos.getOrigin();
         tfScalar rx,ry,rz;
@@ -445,13 +433,7 @@ void PathPlanningWidget::loadPointsFromFile()
 					std::string fin(fileName.toStdString());
 
 		YAML::Node doc;
-		// #ifdef HAVE_NEW_YAMLCPP
 			doc = YAML::LoadFile(fin);
-		// #else
-		//     YAML::Parser parser(fin);
-		//     parser.GetNextDocument(doc);
-		// #endif
-
 				//define double for percent of completion
 				double percent_complete;
 				int end_of_doc = doc.size();

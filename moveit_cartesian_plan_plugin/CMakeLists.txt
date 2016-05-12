@@ -27,7 +27,6 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 set(moveit_cartesian_plan_plugin_SRCS
   src/add_way_point.cpp
-  src/on_mouse_click.cpp
   src/point_tree_item.cpp
   src/point_tree_model.cpp
   src/widgets/path_planning_widget.cpp
@@ -37,7 +36,6 @@ set(moveit_cartesian_plan_plugin_SRCS
 
 set(moveit_cartesian_plan_plugin_HDRS
   include/moveit_cartesian_plan_plugin/add_way_point.h
-  include/moveit_cartesian_plan_plugin/on_mouse_click.h
   include/moveit_cartesian_plan_plugin/point_tree_item.h
   include/moveit_cartesian_plan_plugin/point_tree_model.h
   include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.h

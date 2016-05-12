@@ -15,9 +15,6 @@ AddWayPoint::AddWayPoint(QWidget *parent):rviz::Panel(parent)//, tf_()
     */
      setObjectName("CartesianPathPlannerPlugin");
      server.reset( new interactive_markers::InteractiveMarkerServer("moveit_cartesian_plan_plugin","",false));
-    //  point_sub_.subscribe(n_, "/clicked_point", 10);
-    //  tf_filter_ = new tf::MessageFilter<geometry_msgs::PointStamped>(point_sub_, tf_, target_frame_, 10);
-    //  tf_filter_->registerCallback( boost::bind(&AddWayPoint::msgCallback, this, _1) );
 
       WAY_POINT_COLOR.r = 0.10;
       WAY_POINT_COLOR.g = 0.20;
@@ -113,8 +110,8 @@ void AddWayPoint::onInitialize()
 
 
 
-    connect(this,SIGNAL(initRviz()),path_generate,SLOT(initRviz_done()));
-    /*!  With the signal initRviz() we call a function GenerateCartesianPath::initRviz_done() which sets the initial parameters of the MoveIt enviroment.
+    connect(this,SIGNAL(initRviz()),path_generate,SLOT(initRvizDone()));
+    /*!  With the signal initRviz() we call a function GenerateCartesianPath::initRvizDone() which sets the initial parameters of the MoveIt enviroment.
 
     */
     Q_EMIT initRviz();
@@ -144,36 +141,6 @@ void AddWayPoint::save(rviz::Config config) const
   rviz::Panel::save(config);
   config.mapSetValue("TextEntry",QString::fromStdString( std::string("test_field")));
 }
-
-// void AddWayPoint::msgCallback(const boost::shared_ptr<const geometry_msgs::PointStamped>& point_ptr)
-// {
-//   /*! \brief Mouse Click User Interaction.
-//       This function handles the interaction between the mouse click events in the RViz enviroment,
-//       and creates a Way-Point which location is the location of the Mouse Click in the RViz Enviroment.
-//       This function is deprecated due to the fact that the 3D  point of the mouse click in the RViz enviroment
-//       is handled as the waypoint that intersects with the viewport plane, therefore the Cartesian Way-Point is
-//       always attached to the grid plane of the RViz enviroment.
-//    */
-//   geometry_msgs::PointStamped point_out;
-//     try
-//     {
-//       tf_.transformPoint(target_frame_, *point_ptr, point_out);
-//
-//       printf("Clicked on position (x:%f y:%f z:%f)\n",
-//              point_out.point.x,
-//              point_out.point.y,
-//              point_out.point.z);
-//
-//       tf::Transform point_pos = tf::Transform(tf::Quaternion(0.0,0.0,0.0,1.0),tf::Vector3(point_out.point.x, point_out.point.y, point_out.point.z));
-//       makeArrow(point_pos,count);
-//     }
-//     catch (tf::TransformException &ex)
-//     {
-//       printf ("Failure %s\n", ex.what()); //Print exception which was caught
-//     }
-//     server->applyChanges();
-//
-// }
 
 void AddWayPoint::addPointFromUI( const tf::Transform point_pos)
 {
@@ -213,8 +180,6 @@ void AddWayPoint::processFeedback( const visualization_msgs::InteractiveMarkerFe
       pointPoseUpdated(point_pos, feedback->marker_name.c_str());
 
       Q_EMIT pointPoseUpdatedRViz(point_pos, feedback->marker_name.c_str());
-      //ROS_DEBUG_STREAM("in update function, marker name: " << feedback->marker_name.c_str());
-     // server->applyChanges();
 
       break;
     }
@@ -404,10 +369,6 @@ InteractiveMarkerControl& AddWayPoint::makeArrowControlDetails( InteractiveMarke
   msg.controls.push_back( control_view_details );
 
 //*****************************************************************
- // control_view_details.markers.push_back( makeWayPoint(msg) );
-
-  //server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 ));
-
   return msg.controls.back();
 
 }
@@ -610,9 +571,6 @@ InteractiveMarkerControl control_inter_arrow;
   msg.controls.push_back( control_inter_arrow );
 //*****************************************************************
   control_inter_arrow.markers.push_back( makeInterArrow(msg) );
-  //msg.controls.push_back( control_inter_arrow );
-
- // server->setCallback( msg.name, boost::bind( &AddWayPoint::processFeedback, this, _1 ));
 
   return msg.controls.back();
 }
@@ -654,8 +612,6 @@ void AddWayPoint::parseWayPoints()
     tf::poseTFToMsg (waypoints_pos[i], target_pose);
 
     waypoints.push_back(target_pose);
-     //ROS_INFO_STREAM( "not in the planner positions:"<<waypoints[i].position.x<<";"<< waypoints[i].position.y<<"; " << waypoints[i].position.z);
-     //ROS_INFO_STREAM( "not in the planner orientations:"<<waypoints[i].orientation.x<<";"<<waypoints[i].orientation.y<<";"<<waypoints[i].orientation.z<<";"<<waypoints[i].orientation.w);
   }
 
   Q_EMIT wayPoints_signal(waypoints);
@@ -738,29 +694,27 @@ void AddWayPoint::wayPointOutOfIK_slot(int point_number,int out)
   int control_size = int_marker.controls.size();
   ROS_DEBUG_STREAM("size of controls for marker: "<<control_size);
 
-if(control_size == 0)
-{
-  return;
-}
-else
-{
-  control_size = control_size-1;
-}
+  if(control_size == 0)
+  {
+    return;
+  }
+  else
+  {
+    control_size = control_size-1;
+  }
 
   if(out == 1)
   {
-   // ROS_INFO_STREAM("point which is out of reach is"<<point_number);
-
     //make the marker outside the IK solution with yellow color
     int_marker.controls.at(control_size).markers.at(0).color = WAY_POINT_COLOR_OUTSIDE_IK;
-}
-else
-{
-
+  }
+  else
+  {
     int_marker.controls.at(control_size).markers.at(0).color = WAY_POINT_COLOR;
-}
+  }
+
     server->insert( int_marker);
-    //server->applyChanges();
+
 }
 
 void AddWayPoint::getRobotModelFrame_slot(const std::string robot_model_frame,const tf::Transform end_effector)

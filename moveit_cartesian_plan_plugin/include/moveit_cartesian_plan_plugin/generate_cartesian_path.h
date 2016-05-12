@@ -51,9 +51,8 @@ public Q_SLOTS:
   void moveToPose(std::vector<geometry_msgs::Pose> waypoints);
   //! Checks if the Way-Point is in the valid IK solution for the Robot.
 	void checkWayPointValidity(const geometry_msgs::Pose& waypoints,const int marker_name);
-    // void checkWayPointValidityHandler(const geometry_msgs::Pose& waypoint,const int point_number);
 	//! Slot for letting the Cartesian Path planning class that the RViz has finished with its initialization.
-	void initRviz_done();
+	void initRvizDone();
 	//! Function for setting time consuming Cartesian Path Execution function to a separate thread.
 	void cartesianPathHandler(std::vector<geometry_msgs::Pose> waypoints);
 	//! Get the User entered MoveIt and Cartesian Path parameters and pass them to the corresponding private variables.
@@ -78,10 +77,10 @@ Q_SIGNALS:
 	void sendCartPlanGroup(std::vector< std::string > group_names);
 protected:
     //! MoveIt protected variables.
-	moveit::core::RobotStatePtr kinematic_state;
-	const moveit::core::JointModelGroup* joint_model_group;
+	moveit::core::RobotStatePtr kinematic_state_;
+	const moveit::core::JointModelGroup* joint_model_group_;
   	MoveGroupPtr moveit_group_;
-	robot_model::RobotModelConstPtr kmodel;
+	robot_model::RobotModelConstPtr kmodel_;
 	RobotModelLoaderPtr robot_model_loader;
 
 	tf::Transform end_effector;
