@@ -688,7 +688,7 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="15" column="0">
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="btn_SendCartParams">
           <property name="text">
            <string>Set</string>
           </property>

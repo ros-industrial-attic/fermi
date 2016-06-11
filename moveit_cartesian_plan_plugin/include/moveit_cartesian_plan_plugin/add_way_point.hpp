@@ -31,6 +31,8 @@
 
 #include <moveit_cartesian_plan_plugin/generate_cartesian_path.hpp>
 
+#include <moveit_cartesian_plan_plugin/set_cart_impedance.hpp>
+
 #include <QWidget>
 #include <QCursor>
 #include <QObject>
@@ -153,6 +155,8 @@ protected:
     QWidget *widget_;
     //! The Object for the MoveIt components.
     QObject *path_generate;
+		//! The Object for setting Cartesian path parameters
+		QObject *set_cart_path_params;
 private:
 	//! Define constants for color, arrow size, etc.
 	std_msgs::ColorRGBA WAY_POINT_COLOR;

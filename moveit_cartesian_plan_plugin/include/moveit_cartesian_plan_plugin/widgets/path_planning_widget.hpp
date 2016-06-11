@@ -15,6 +15,8 @@
 
 #include <moveit_cartesian_plan_plugin/add_way_point.hpp>
 
+#include <cartesian_impedance_msgs/SetCartesianImpedance.h>
+
 #include <QWidget>
 #include <QTimer>
 #include <QtConcurrentRun>
@@ -123,6 +125,8 @@ namespace moveit_cartesian_plan_plugin
 
 			//! Create a slot to call a signal on which the Move the robot to home position function is called
 			void moveToHomeFromUI();
+
+			void setCartesianImpedanceParamsUI();
 		Q_SIGNALS:
 			//! Notify RViz enviroment that a new Way-Point has been added from RQT.
 		    void addPoint( const tf::Transform point_pos );
@@ -143,6 +147,8 @@ namespace moveit_cartesian_plan_plugin
 		    void moveToHomeFromUI_signal();
 
 				void sendSendSelectedPlanGroup(int index);
+
+				void setCartesianImpedanceParamsUI_signal(cartesian_impedance_msgs::SetCartesianImpedancePtr cart_impedance_params);
 
 		};
 	}
