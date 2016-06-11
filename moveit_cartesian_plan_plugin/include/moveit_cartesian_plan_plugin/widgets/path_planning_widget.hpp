@@ -13,7 +13,7 @@
 
 #include <ui_path_planning_widget.h>
 
-#include <moveit_cartesian_plan_plugin/add_way_point.h>
+#include <moveit_cartesian_plan_plugin/add_way_point.hpp>
 
 #include <QWidget>
 #include <QTimer>

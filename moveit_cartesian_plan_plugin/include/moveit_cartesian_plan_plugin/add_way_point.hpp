@@ -27,9 +27,9 @@
 
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/string_property.h>
-#include <moveit_cartesian_plan_plugin/widgets/path_planning_widget.h>
+#include <moveit_cartesian_plan_plugin/widgets/path_planning_widget.hpp>
 
-#include <moveit_cartesian_plan_plugin/generate_cartesian_path.h>
+#include <moveit_cartesian_plan_plugin/generate_cartesian_path.hpp>
 
 #include <QWidget>
 #include <QCursor>

@@ -35,11 +35,11 @@ set(moveit_cartesian_plan_plugin_SRCS
 )
 
 set(moveit_cartesian_plan_plugin_HDRS
-  include/moveit_cartesian_plan_plugin/add_way_point.h
-  include/moveit_cartesian_plan_plugin/point_tree_item.h
-  include/moveit_cartesian_plan_plugin/point_tree_model.h
-  include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.h
-  include/moveit_cartesian_plan_plugin/generate_cartesian_path.h
+  include/moveit_cartesian_plan_plugin/add_way_point.hpp
+  include/moveit_cartesian_plan_plugin/point_tree_item.hpp
+  include/moveit_cartesian_plan_plugin/point_tree_model.hpp
+  include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.hpp
+  include/moveit_cartesian_plan_plugin/generate_cartesian_path.hpp
 )
 
 set(moveit_cartesian_plan_plugin_UIS

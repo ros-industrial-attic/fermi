@@ -330,36 +330,36 @@ border-color :rgb(48, 48, 48)</string>
       <widget class="QWidget" name="gridLayoutWidget">
        <property name="geometry">
         <rect>
-         <x>20</x>
-         <y>40</y>
+         <x>10</x>
+         <y>20</y>
          <width>371</width>
          <height>484</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="txt_Stiffness_X">
           <property name="text">
            <string>1000</string>
           </property>
          </widget>
         </item>
         <item row="1" column="3">
-         <widget class="QLineEdit" name="lineEdit_3">
+         <widget class="QLineEdit" name="txt_Stiffness_Z">
           <property name="text">
            <string>1000</string>
           </property>
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="lineEdit_4">
+         <widget class="QLineEdit" name="txt_Stiffness_RX">
           <property name="text">
            <string>500</string>
           </property>
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QLineEdit" name="lineEdit_5">
+         <widget class="QLineEdit" name="txt_Stiffness_RY">
           <property name="text">
            <string>500</string>
           </property>
@@ -382,26 +382,26 @@ border-color :rgb(48, 48, 48)</string>
         <item row="1" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>XYZ [N/m]:</string>
+           <string>TxTyTz [N/m]:</string>
           </property>
          </widget>
         </item>
         <item row="2" column="3">
-         <widget class="QLineEdit" name="lineEdit_6">
+         <widget class="QLineEdit" name="txt_Stiffness_RZ">
           <property name="text">
            <string>500</string>
           </property>
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLineEdit" name="lineEdit_2">
+         <widget class="QLineEdit" name="txt_Stiffness_Y">
           <property name="text">
            <string>1000</string>
           </property>
          </widget>
         </item>
         <item row="5" column="1">
-         <widget class="QLineEdit" name="lineEdit_10">
+         <widget class="QLineEdit" name="txt_Damping_RX">
           <property name="text">
            <string>0.3</string>
           </property>
@@ -422,16 +422,16 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="7" column="1">
-         <widget class="QLineEdit" name="lineEdit_16">
+         <widget class="QLineEdit" name="txt_MaxVel_X">
           <property name="text">
-           <string>0.3</string>
+           <string>1</string>
           </property>
          </widget>
         </item>
         <item row="11" column="1">
-         <widget class="QLineEdit" name="lineEdit_23">
+         <widget class="QLineEdit" name="txt_MaxCtrlForce_RX">
           <property name="text">
-           <string>0.3</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
@@ -443,23 +443,23 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="8" column="2">
-         <widget class="QLineEdit" name="lineEdit_15">
+         <widget class="QLineEdit" name="txt_MaxVel_RY">
           <property name="text">
-           <string>0.3</string>
+           <string>6.3</string>
           </property>
          </widget>
         </item>
         <item row="13" column="0">
          <widget class="QLabel" name="label_20">
           <property name="text">
-           <string>XYZ [m]:</string>
+           <string>TxTyTz [m]:</string>
           </property>
          </widget>
         </item>
         <item row="10" column="0">
          <widget class="QLabel" name="label_17">
           <property name="text">
-           <string>XYZ [N]:</string>
+           <string>TxTyTz [N]:</string>
           </property>
          </widget>
         </item>
@@ -471,9 +471,9 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="14" column="3">
-         <widget class="QLineEdit" name="lineEdit_30">
+         <widget class="QLineEdit" name="txt_MaxPathDev_RZ">
           <property name="text">
-           <string>0.3</string>
+           <string>5</string>
           </property>
          </widget>
         </item>
@@ -492,30 +492,30 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="4" column="3">
-         <widget class="QLineEdit" name="lineEdit_9">
+         <widget class="QLineEdit" name="txt_Damping_Z">
           <property name="text">
            <string>0.3</string>
           </property>
          </widget>
         </item>
         <item row="14" column="2">
-         <widget class="QLineEdit" name="lineEdit_27">
+         <widget class="QLineEdit" name="txt_MaxPathDev_RY">
           <property name="text">
-           <string>0.3</string>
+           <string>5</string>
           </property>
          </widget>
         </item>
         <item row="5" column="3">
-         <widget class="QLineEdit" name="lineEdit_11">
+         <widget class="QLineEdit" name="txt_Damping_RZ">
           <property name="text">
            <string>0.3</string>
           </property>
          </widget>
         </item>
         <item row="14" column="1">
-         <widget class="QLineEdit" name="lineEdit_29">
+         <widget class="QLineEdit" name="txt_MaxPathDev_RX">
           <property name="text">
-           <string>0.3</string>
+           <string>5</string>
           </property>
          </widget>
         </item>
@@ -534,37 +534,37 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="10" column="2">
-         <widget class="QLineEdit" name="lineEdit_19">
+         <widget class="QLineEdit" name="txt_MaxCtrlForce_Y">
           <property name="text">
-           <string>0.3</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
         <item row="10" column="3">
-         <widget class="QLineEdit" name="lineEdit_20">
+         <widget class="QLineEdit" name="txt_MaxCtrlForce_Z">
           <property name="text">
-           <string>0.3</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
         <item row="11" column="2">
-         <widget class="QLineEdit" name="lineEdit_21">
+         <widget class="QLineEdit" name="txt_MaxCtrlForce_RY">
           <property name="text">
-           <string>0.3</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
         <item row="8" column="1">
-         <widget class="QLineEdit" name="lineEdit_17">
+         <widget class="QLineEdit" name="txt_MaxVel_RX">
           <property name="text">
-           <string>0.3</string>
+           <string>6.3</string>
           </property>
          </widget>
         </item>
         <item row="13" column="3">
-         <widget class="QLineEdit" name="lineEdit_26">
+         <widget class="QLineEdit" name="txt_MaxPathDev_Z">
           <property name="text">
-           <string>0.3</string>
+           <string>1</string>
           </property>
          </widget>
         </item>
@@ -583,14 +583,14 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="11" column="3">
-         <widget class="QLineEdit" name="lineEdit_24">
+         <widget class="QLineEdit" name="txt_MaxCtrlForce_RZ">
           <property name="text">
-           <string>0.3</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
         <item row="5" column="2">
-         <widget class="QLineEdit" name="lineEdit_12">
+         <widget class="QLineEdit" name="txt_Damping_RY">
           <property name="text">
            <string>0.3</string>
           </property>
@@ -604,7 +604,7 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QLineEdit" name="lineEdit_8">
+         <widget class="QLineEdit" name="txt_Damping_Y">
           <property name="text">
            <string>0.3</string>
           </property>
@@ -613,42 +613,42 @@ border-color :rgb(48, 48, 48)</string>
         <item row="4" column="0">
          <widget class="QLabel" name="label_9">
           <property name="text">
-           <string>XYZ ratio [0.1-1.0]:</string>
+           <string>TxTyTz ratio [0.1-1.0]:</string>
           </property>
          </widget>
         </item>
         <item row="7" column="0">
          <widget class="QLabel" name="label_14">
           <property name="text">
-           <string>XYZ [m/s]:</string>
+           <string>TxTyTz [m/s]:</string>
           </property>
          </widget>
         </item>
         <item row="10" column="1">
-         <widget class="QLineEdit" name="lineEdit_22">
+         <widget class="QLineEdit" name="txt_MaxCtrlForce_X">
           <property name="text">
-           <string>0.3</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
         <item row="13" column="1">
-         <widget class="QLineEdit" name="lineEdit_28">
+         <widget class="QLineEdit" name="txt_MaxPathDev_X">
           <property name="text">
-           <string>0.3</string>
+           <string>1</string>
           </property>
          </widget>
         </item>
         <item row="7" column="3">
-         <widget class="QLineEdit" name="lineEdit_14">
+         <widget class="QLineEdit" name="txt_MaxVel_Z">
           <property name="text">
-           <string>0.3</string>
+           <string>1</string>
           </property>
          </widget>
         </item>
         <item row="7" column="2">
-         <widget class="QLineEdit" name="lineEdit_13">
+         <widget class="QLineEdit" name="txt_MaxVel_Y">
           <property name="text">
-           <string>0.3</string>
+           <string>1</string>
           </property>
          </widget>
         </item>
@@ -667,21 +667,21 @@ border-color :rgb(48, 48, 48)</string>
          </widget>
         </item>
         <item row="8" column="3">
-         <widget class="QLineEdit" name="lineEdit_18">
+         <widget class="QLineEdit" name="txt_MaxVel_RZ">
           <property name="text">
-           <string>0.3</string>
+           <string>6.3</string>
           </property>
          </widget>
         </item>
         <item row="13" column="2">
-         <widget class="QLineEdit" name="lineEdit_25">
+         <widget class="QLineEdit" name="txt_MaxPathDev_Y">
           <property name="text">
-           <string>0.3</string>
+           <string>1</string>
           </property>
          </widget>
         </item>
         <item row="4" column="1">
-         <widget class="QLineEdit" name="lineEdit_7">
+         <widget class="QLineEdit" name="txt_Damping_X">
           <property name="text">
            <string>0.3</string>
           </property>
