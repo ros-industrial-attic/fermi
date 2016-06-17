@@ -24,7 +24,7 @@
    <item row="0" column="1">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_1">
       <attribute name="title">
@@ -354,14 +354,14 @@ border-color :rgb(48, 48, 48)</string>
         <item row="2" column="1">
          <widget class="QLineEdit" name="txt_Stiffness_RX">
           <property name="text">
-           <string>500</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
         <item row="2" column="2">
          <widget class="QLineEdit" name="txt_Stiffness_RY">
           <property name="text">
-           <string>500</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
@@ -389,7 +389,7 @@ border-color :rgb(48, 48, 48)</string>
         <item row="2" column="3">
          <widget class="QLineEdit" name="txt_Stiffness_RZ">
           <property name="text">
-           <string>500</string>
+           <string>200</string>
           </property>
          </widget>
         </item>
@@ -696,8 +696,6 @@ border-color :rgb(48, 48, 48)</string>
         </item>
        </layout>
       </widget>
-      <zorder>gridLayoutWidget</zorder>
-      <zorder>label_19</zorder>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
