@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>498</width>
+    <width>459</width>
     <height>644</height>
    </rect>
   </property>
@@ -23,6 +23,9 @@
    </item>
    <item row="0" column="1">
     <widget class="QTabWidget" name="tabWidget">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -332,11 +335,25 @@ border-color :rgb(48, 48, 48)</string>
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>371</width>
-         <height>484</height>
+         <width>425</width>
+         <height>540</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
+        <item row="10" column="1">
+         <widget class="QLineEdit" name="txt_MaxCtrlForce_X">
+          <property name="text">
+           <string>200</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLineEdit" name="txt_Stiffness_RZ">
+          <property name="text">
+           <string>200</string>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="1">
          <widget class="QLineEdit" name="txt_Stiffness_X">
           <property name="text">
@@ -383,13 +400,6 @@ border-color :rgb(48, 48, 48)</string>
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string>TxTyTz [N/m]:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
-         <widget class="QLineEdit" name="txt_Stiffness_RZ">
-          <property name="text">
-           <string>200</string>
           </property>
          </widget>
         </item>
@@ -474,20 +484,6 @@ border-color :rgb(48, 48, 48)</string>
          <widget class="QLineEdit" name="txt_MaxPathDev_RZ">
           <property name="text">
            <string>5</string>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="label_21">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Max Path Deviation</string>
           </property>
          </widget>
         </item>
@@ -624,13 +620,6 @@ border-color :rgb(48, 48, 48)</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="1">
-         <widget class="QLineEdit" name="txt_MaxCtrlForce_X">
-          <property name="text">
-           <string>200</string>
-          </property>
-         </widget>
-        </item>
         <item row="13" column="1">
          <widget class="QLineEdit" name="txt_MaxPathDev_X">
           <property name="text">
@@ -687,10 +676,52 @@ border-color :rgb(48, 48, 48)</string>
           </property>
          </widget>
         </item>
-        <item row="15" column="0">
+        <item row="18" column="0">
          <widget class="QPushButton" name="btn_SendCartParams">
           <property name="text">
            <string>Set</string>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="0">
+         <widget class="QLabel" name="label_21">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Null Space Parameters</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="0">
+         <widget class="QLabel" name="label_22">
+          <property name="text">
+           <string>Stiffness [Nm/rad] ,Damping[ratio]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="0">
+         <widget class="QLabel" name="label_23">
+          <property name="text">
+           <string>Joints: </string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="1">
+         <widget class="QLineEdit" name="txt_NullSpace_Stiffness">
+          <property name="text">
+           <string>2</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="2">
+         <widget class="QLineEdit" name="txt_NullSpace_Damping">
+          <property name="text">
+           <string>0.5</string>
           </property>
          </widget>
         </item>
@@ -704,8 +735,8 @@ border-color :rgb(48, 48, 48)</string>
       <widget class="QPushButton" name="targetPoint">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>250</y>
+         <x>0</x>
+         <y>390</y>
          <width>181</width>
          <height>27</height>
         </rect>
@@ -846,32 +877,11 @@ border-color :rgb(48, 48, 48)</string>
         </property>
        </widget>
       </widget>
-      <widget class="QLabel" name="lbl_cartPathCompleted">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>290</y>
-         <width>461</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <italic>true</italic>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
       <widget class="QPushButton" name="btn_moveToHome">
        <property name="geometry">
         <rect>
-         <x>200</x>
-         <y>250</y>
+         <x>180</x>
+         <y>390</y>
          <width>181</width>
          <height>27</height>
         </rect>
@@ -880,6 +890,140 @@ border-color :rgb(48, 48, 48)</string>
         <string>Move to Home</string>
        </property>
       </widget>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>240</y>
+         <width>311</width>
+         <height>141</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <weight>75</weight>
+         <italic>false</italic>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(226, 226, 226)</string>
+       </property>
+       <property name="title">
+        <string>Set Cartesian Force Control</string>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>40</y>
+          <width>311</width>
+          <height>62</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="3">
+          <widget class="QLineEdit" name="lineEdit_3">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_27">
+           <property name="text">
+            <string>XYZ [N]:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="lineEdit_2">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_28">
+           <property name="text">
+            <string>RxRyRz [Nm]: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEdit_4">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="lineEdit_5">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QLineEdit" name="lineEdit_6">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QPushButton" name="pushButton">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>110</y>
+          <width>111</width>
+          <height>27</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Set F/T Control</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QLabel" name="lbl_cartPathCompleted">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>440</y>
+         <width>341</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <zorder>targetPoint</zorder>
+      <zorder>label_4</zorder>
+      <zorder>lnEdit_PlanTime</zorder>
+      <zorder>chk_AllowReplanning</zorder>
+      <zorder>groupBox_2</zorder>
+      <zorder>btn_moveToHome</zorder>
+      <zorder>groupBox_4</zorder>
+      <zorder>groupBox_4</zorder>
+      <zorder>lbl_cartPathCompleted</zorder>
      </widget>
     </widget>
    </item>

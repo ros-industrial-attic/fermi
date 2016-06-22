@@ -594,7 +594,14 @@ void PathPlanningWidget::savePointsToFile()
 			iiwa_cart_vals->max_path_deviation.rotation.y = ui_.txt_MaxPathDev_RY->text().toDouble();
 			iiwa_cart_vals->max_path_deviation.rotation.z = ui_.txt_MaxPathDev_RZ->text().toDouble();
 
+			//NullSpace reduntant joint parameters
+			iiwa_cart_vals->null_space_params.stiffness.push_back(ui_.txt_NullSpace_Stiffness->text().toDouble());
+		  iiwa_cart_vals->null_space_params.damping.push_back(ui_.txt_NullSpace_Damping->text().toDouble());
+
 			Q_EMIT setCartesianImpedanceParamsUI_signal(iiwa_cart_vals);
+
+			iiwa_cart_vals->null_space_params.damping.clear();
+			iiwa_cart_vals->null_space_params.stiffness.clear();
 		}
 
   }
