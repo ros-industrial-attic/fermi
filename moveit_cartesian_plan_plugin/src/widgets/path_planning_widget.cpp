@@ -58,6 +58,14 @@ namespace moveit_cartesian_plan_plugin
       ui_.btnAddPoint->setToolTip(tr("Add a new Way-Point"));
       ui_.btnRemovePoint->setToolTip(tr("Remove a selected Way-Point"));
 
+			ui_.combo_DOF_FT->addItem("X");
+			ui_.combo_DOF_FT->addItem("Y");
+			ui_.combo_DOF_FT->addItem("Z");
+
+			ui_.combo_DOF_FT->addItem("Rx");
+			ui_.combo_DOF_FT->addItem("Ry");
+			ui_.combo_DOF_FT->addItem("Rz");
+
       connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
       connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(pointDeletedUI()));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
@@ -73,6 +81,8 @@ namespace moveit_cartesian_plan_plugin
 			connect(ui_.combo_planGroup,SIGNAL(currentIndexChanged ( int )),this,SLOT(selectedPlanGroup(int)));
 
 			connect(ui_.btn_SendCartParams,SIGNAL(clicked()),this,SLOT(setCartesianImpedanceParamsUI()));
+
+			connect(ui_.btn_setFT,SIGNAL(clicked()),this,SLOT(setCartesianFTParamsUI()));
 
 		}
 
@@ -546,62 +556,74 @@ void PathPlanningWidget::savePointsToFile()
 
 		void PathPlanningWidget::setCartesianImpedanceParamsUI()
 		{
-			cartesian_impedance_msgs::SetCartesianImpedancePtr iiwa_cart_vals(new cartesian_impedance_msgs::SetCartesianImpedance);
+			cartesian_impedance_msgs::SetCartesianImpedancePtr cart_vals(new cartesian_impedance_msgs::SetCartesianImpedance);
 
 			//stiffness Ttranslational
-			iiwa_cart_vals->stiffness.translational.x = ui_.txt_Stiffness_X->text().toDouble();
-			iiwa_cart_vals->stiffness.translational.y = ui_.txt_Stiffness_Y->text().toDouble();
-			iiwa_cart_vals->stiffness.translational.z = ui_.txt_Stiffness_Z->text().toDouble();
+			cart_vals->stiffness.translational.x = ui_.txt_Stiffness_X->text().toDouble();
+			cart_vals->stiffness.translational.y = ui_.txt_Stiffness_Y->text().toDouble();
+			cart_vals->stiffness.translational.z = ui_.txt_Stiffness_Z->text().toDouble();
 			//stiffness Rotational
-			iiwa_cart_vals->stiffness.rotational.x = ui_.txt_Stiffness_RX->text().toDouble();
-			iiwa_cart_vals->stiffness.rotational.y = ui_.txt_Stiffness_RY->text().toDouble();
-			iiwa_cart_vals->stiffness.rotational.z = ui_.txt_Stiffness_RZ->text().toDouble();
+			cart_vals->stiffness.rotational.x = ui_.txt_Stiffness_RX->text().toDouble();
+			cart_vals->stiffness.rotational.y = ui_.txt_Stiffness_RY->text().toDouble();
+			cart_vals->stiffness.rotational.z = ui_.txt_Stiffness_RZ->text().toDouble();
 
 			//damping Ttranslational
-			iiwa_cart_vals->damping.translational.x = ui_.txt_Damping_X->text().toDouble();
-			iiwa_cart_vals->damping.translational.y = ui_.txt_Damping_Y->text().toDouble();
-			iiwa_cart_vals->damping.translational.z = ui_.txt_Damping_Z->text().toDouble();
+			cart_vals->damping.translational.x = ui_.txt_Damping_X->text().toDouble();
+			cart_vals->damping.translational.y = ui_.txt_Damping_Y->text().toDouble();
+			cart_vals->damping.translational.z = ui_.txt_Damping_Z->text().toDouble();
 			//damping Rotational
-			iiwa_cart_vals->damping.rotational.x = ui_.txt_Damping_RX->text().toDouble();
-			iiwa_cart_vals->damping.rotational.y = ui_.txt_Damping_RY->text().toDouble();
-			iiwa_cart_vals->damping.rotational.z = ui_.txt_Damping_RZ->text().toDouble();
+			cart_vals->damping.rotational.x = ui_.txt_Damping_RX->text().toDouble();
+			cart_vals->damping.rotational.y = ui_.txt_Damping_RY->text().toDouble();
+			cart_vals->damping.rotational.z = ui_.txt_Damping_RZ->text().toDouble();
 
 			//Maximum Cartesian Velocity Linear
-			iiwa_cart_vals->max_cart_vel.set.linear.x = ui_.txt_MaxVel_X->text().toDouble();
-			iiwa_cart_vals->max_cart_vel.set.linear.y = ui_.txt_MaxVel_Y->text().toDouble();
-			iiwa_cart_vals->max_cart_vel.set.linear.z = ui_.txt_MaxVel_Z->text().toDouble();
+			cart_vals->max_cart_vel.set.linear.x = ui_.txt_MaxVel_X->text().toDouble();
+			cart_vals->max_cart_vel.set.linear.y = ui_.txt_MaxVel_Y->text().toDouble();
+			cart_vals->max_cart_vel.set.linear.z = ui_.txt_MaxVel_Z->text().toDouble();
 			//Maximum Cartesian Velocity Angular
-			iiwa_cart_vals->max_cart_vel.set.angular.x = ui_.txt_MaxVel_RX->text().toDouble();
-			iiwa_cart_vals->max_cart_vel.set.angular.y = ui_.txt_MaxVel_RY->text().toDouble();
-			iiwa_cart_vals->max_cart_vel.set.angular.z = ui_.txt_MaxVel_RZ->text().toDouble();
+			cart_vals->max_cart_vel.set.angular.x = ui_.txt_MaxVel_RX->text().toDouble();
+			cart_vals->max_cart_vel.set.angular.y = ui_.txt_MaxVel_RY->text().toDouble();
+			cart_vals->max_cart_vel.set.angular.z = ui_.txt_MaxVel_RZ->text().toDouble();
 
 
 			//Maximum Control Force Linear
-			iiwa_cart_vals->max_ctrl_force.set.force.x = ui_.txt_MaxCtrlForce_X->text().toDouble();
-			iiwa_cart_vals->max_ctrl_force.set.force.y = ui_.txt_MaxCtrlForce_Y->text().toDouble();
-			iiwa_cart_vals->max_ctrl_force.set.force.z = ui_.txt_MaxCtrlForce_Z->text().toDouble();
+			cart_vals->max_ctrl_force.set.force.x = ui_.txt_MaxCtrlForce_X->text().toDouble();
+			cart_vals->max_ctrl_force.set.force.y = ui_.txt_MaxCtrlForce_Y->text().toDouble();
+			cart_vals->max_ctrl_force.set.force.z = ui_.txt_MaxCtrlForce_Z->text().toDouble();
 			//Maximum Control Force Angular
-			iiwa_cart_vals->max_ctrl_force.set.torque.x = ui_.txt_MaxCtrlForce_RX->text().toDouble();
-			iiwa_cart_vals->max_ctrl_force.set.torque.y = ui_.txt_MaxCtrlForce_RY->text().toDouble();
-			iiwa_cart_vals->max_ctrl_force.set.torque.z = ui_.txt_MaxCtrlForce_RZ->text().toDouble();
+			cart_vals->max_ctrl_force.set.torque.x = ui_.txt_MaxCtrlForce_RX->text().toDouble();
+			cart_vals->max_ctrl_force.set.torque.y = ui_.txt_MaxCtrlForce_RY->text().toDouble();
+			cart_vals->max_ctrl_force.set.torque.z = ui_.txt_MaxCtrlForce_RZ->text().toDouble();
 
 			//Maximum Cartesian Path Deviation Translation
-			iiwa_cart_vals->max_path_deviation.translation.x = ui_.txt_MaxPathDev_X->text().toDouble();
-			iiwa_cart_vals->max_path_deviation.translation.y = ui_.txt_MaxPathDev_Y->text().toDouble();
-			iiwa_cart_vals->max_path_deviation.translation.z = ui_.txt_MaxPathDev_Z->text().toDouble();
+			cart_vals->max_path_deviation.translation.x = ui_.txt_MaxPathDev_X->text().toDouble();
+			cart_vals->max_path_deviation.translation.y = ui_.txt_MaxPathDev_Y->text().toDouble();
+			cart_vals->max_path_deviation.translation.z = ui_.txt_MaxPathDev_Z->text().toDouble();
 			//Maximum Cartesian Path Deviation Rotation
-			iiwa_cart_vals->max_path_deviation.rotation.x = ui_.txt_MaxPathDev_RX->text().toDouble();
-			iiwa_cart_vals->max_path_deviation.rotation.y = ui_.txt_MaxPathDev_RY->text().toDouble();
-			iiwa_cart_vals->max_path_deviation.rotation.z = ui_.txt_MaxPathDev_RZ->text().toDouble();
+			cart_vals->max_path_deviation.rotation.x = ui_.txt_MaxPathDev_RX->text().toDouble();
+			cart_vals->max_path_deviation.rotation.y = ui_.txt_MaxPathDev_RY->text().toDouble();
+			cart_vals->max_path_deviation.rotation.z = ui_.txt_MaxPathDev_RZ->text().toDouble();
 
 			//NullSpace reduntant joint parameters
-			iiwa_cart_vals->null_space_params.stiffness.push_back(ui_.txt_NullSpace_Stiffness->text().toDouble());
-		  iiwa_cart_vals->null_space_params.damping.push_back(ui_.txt_NullSpace_Damping->text().toDouble());
+			cart_vals->null_space_params.stiffness.push_back(ui_.txt_NullSpace_Stiffness->text().toDouble());
+		  cart_vals->null_space_params.damping.push_back(ui_.txt_NullSpace_Damping->text().toDouble());
 
-			Q_EMIT setCartesianImpedanceParamsUI_signal(iiwa_cart_vals);
+			Q_EMIT setCartesianImpedanceParamsUI_signal(cart_vals);
 
-			iiwa_cart_vals->null_space_params.damping.clear();
-			iiwa_cart_vals->null_space_params.stiffness.clear();
+			cart_vals->null_space_params.damping.clear();
+			cart_vals->null_space_params.stiffness.clear();
+		}
+
+		void PathPlanningWidget::setCartesianFTParamsUI()
+		{
+			cartesian_impedance_msgs::SetCartesianForceCtrlPtr ft_vals(new cartesian_impedance_msgs::SetCartesianForceCtrl);
+			QByteArray dof = ui_.combo_DOF_FT->currentText().toLatin1();
+			ft_vals->DOF = dof.data();
+
+			ft_vals->force 		 = ui_.txt_FTValue->text().toDouble();
+			ft_vals->stiffness = ui_.txt_FTStiffness->text().toDouble();
+
+			setCartesianFTParamsUI_signal(ft_vals);
 		}
 
   }

@@ -32,6 +32,7 @@ set(moveit_cartesian_plan_plugin_SRCS
   src/widgets/path_planning_widget.cpp
   src/generate_cartesian_path.cpp
   src/set_cart_impedance.cpp
+  src/set_cart_ft_control.cpp
   ${MOC_FILES}
 )
 
@@ -42,6 +43,7 @@ set(moveit_cartesian_plan_plugin_HDRS
   include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.hpp
   include/moveit_cartesian_plan_plugin/generate_cartesian_path.hpp
   include/moveit_cartesian_plan_plugin/set_cart_impedance.hpp
+  include/moveit_cartesian_plan_plugin/set_cart_ft_control.hpp
 
 )
 

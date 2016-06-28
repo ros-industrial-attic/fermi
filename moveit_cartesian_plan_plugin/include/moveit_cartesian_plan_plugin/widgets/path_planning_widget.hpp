@@ -16,6 +16,7 @@
 #include <moveit_cartesian_plan_plugin/add_way_point.hpp>
 
 #include <cartesian_impedance_msgs/SetCartesianImpedance.h>
+#include <cartesian_impedance_msgs/SetCartesianForceCtrl.h>
 
 #include <QWidget>
 #include <QTimer>
@@ -127,6 +128,7 @@ namespace moveit_cartesian_plan_plugin
 			void moveToHomeFromUI();
 
 			void setCartesianImpedanceParamsUI();
+			void setCartesianFTParamsUI();
 		Q_SIGNALS:
 			//! Notify RViz enviroment that a new Way-Point has been added from RQT.
 		    void addPoint( const tf::Transform point_pos );
@@ -149,6 +151,7 @@ namespace moveit_cartesian_plan_plugin
 				void sendSendSelectedPlanGroup(int index);
 
 				void setCartesianImpedanceParamsUI_signal(cartesian_impedance_msgs::SetCartesianImpedancePtr cart_impedance_params);
+				void setCartesianFTParamsUI_signal(cartesian_impedance_msgs::SetCartesianForceCtrlPtr cart_ft_params);
 
 		};
 	}

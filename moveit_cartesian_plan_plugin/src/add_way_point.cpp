@@ -64,6 +64,7 @@ void AddWayPoint::onInitialize()
 
     path_generate = new GenerateCartesianPath();
     set_cart_path_params = new SetCartesianImpedance();
+    set_cart_ft_params = new SetCartesianFTControl();
     widget_ = new widgets::PathPlanningWidget("~");
     this->parentWidget()->resize(widget_->width(),widget_->height());
     QHBoxLayout* main_layout = new QHBoxLayout(this);
@@ -119,6 +120,7 @@ void AddWayPoint::onInitialize()
 
     //addition connect the cartesian Path parameters
     connect(widget_,SIGNAL(setCartesianImpedanceParamsUI_signal(cartesian_impedance_msgs::SetCartesianImpedancePtr)),set_cart_path_params,SLOT(sendCartImpedanceParams(cartesian_impedance_msgs::SetCartesianImpedancePtr)));
+    connect(widget_,SIGNAL(setCartesianFTParamsUI_signal(cartesian_impedance_msgs::SetCartesianForceCtrlPtr)),set_cart_ft_params,SLOT(sendCartFTParams(cartesian_impedance_msgs::SetCartesianForceCtrlPtr)));
 
     ROS_INFO("ready.");
 
