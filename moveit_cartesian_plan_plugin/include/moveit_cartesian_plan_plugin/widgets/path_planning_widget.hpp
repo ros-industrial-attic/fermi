@@ -83,8 +83,8 @@ namespace moveit_cartesian_plan_plugin
 			void pointRange();
 		protected Q_SLOTS:
 			//! Initialize the TreeView with the User Interactive Marker.
-		    void initTreeView();
-		    //! Handle the event of a Way-Point deleted from the RQT UI.
+		  void initTreeView();
+		  //! Handle the event of a Way-Point deleted from the RQT UI.
 			void pointDeletedUI();
 			//! Handle the event of a Way-Point added from the RQT UI.
 			void pointAddUI();
@@ -129,6 +129,11 @@ namespace moveit_cartesian_plan_plugin
 
 			void setCartesianImpedanceParamsUI();
 			void setCartesianFTParamsUI();
+			//! Check if the user wants to have cartesian impedance enabled
+			void withCartImpedanceStateChanged(int state);
+
+			//! Check if the user wants to have F/T control from the UI
+			void withFTControl(int state);
 		Q_SIGNALS:
 			//! Notify RViz enviroment that a new Way-Point has been added from RQT.
 		    void addPoint( const tf::Transform point_pos );

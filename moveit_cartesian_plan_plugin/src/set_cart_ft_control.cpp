@@ -19,11 +19,7 @@ SetCartesianFTControl::~SetCartesianFTControl()
 
 void SetCartesianFTControl::init()
 {
-  /*! Initialize the MoveIt parameters:
-        - MoveIt group
-        - Kinematic State is the current kinematic congiguration of the Robot
-        - Robot model which handles getting the Robot Model
-        - Joint Model group which are necessary for checking if Way-Point is outside the IK Solution
+  /*! Initialize Cartesian Force Control publisher
         .
   */
     cartesian_ft_params_pub = n_.advertise<cartesian_impedance_msgs::SetCartesianForceCtrl>("/set_cartesian_ft_params", 1000);
@@ -31,7 +27,9 @@ void SetCartesianFTControl::init()
 
 void SetCartesianFTControl::sendCartFTParams(cartesian_impedance_msgs::SetCartesianForceCtrlPtr cart_ft_params)
 {
-  ROS_INFO("Publishing FT Ctrl Set %s",cart_ft_params->DOF.c_str());
+  /*! Publish the Cartesian Force Control Parameters set from the UI
+        .
+  */
   cartesian_ft_params_pub.publish(cart_ft_params);
 
 }

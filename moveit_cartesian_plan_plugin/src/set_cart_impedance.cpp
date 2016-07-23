@@ -19,11 +19,7 @@ SetCartesianImpedance::~SetCartesianImpedance()
 
 void SetCartesianImpedance::init()
 {
-  /*! Initialize the MoveIt parameters:
-        - MoveIt group
-        - Kinematic State is the current kinematic congiguration of the Robot
-        - Robot model which handles getting the Robot Model
-        - Joint Model group which are necessary for checking if Way-Point is outside the IK Solution
+  /*! Initialize Cartesian Impedance Control publisher
         .
   */
     cartesian_impedance_params_pub = n_.advertise<cartesian_impedance_msgs::SetCartesianImpedance>("/set_cartesian_impedance_params", 1000);
@@ -31,6 +27,9 @@ void SetCartesianImpedance::init()
 
 void SetCartesianImpedance::sendCartImpedanceParams(cartesian_impedance_msgs::SetCartesianImpedancePtr cart_impedance_params)
 {
+  /*! Publish the Cartesian Impedance Control Parameters set from the UI
+        .
+  */
   cartesian_impedance_params_pub.publish(cart_impedance_params);
 
 }

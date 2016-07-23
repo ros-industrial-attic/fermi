@@ -77,12 +77,72 @@ namespace moveit_cartesian_plan_plugin
       connect(ui_.btn_ClearAllPoints,SIGNAL(clicked()),this,SLOT(clearAllPoints_slot()));
 
       connect(ui_.btn_moveToHome,SIGNAL(clicked()),this,SLOT(moveToHomeFromUI()));
-
 			connect(ui_.combo_planGroup,SIGNAL(currentIndexChanged ( int )),this,SLOT(selectedPlanGroup(int)));
-
 			connect(ui_.btn_SendCartParams,SIGNAL(clicked()),this,SLOT(setCartesianImpedanceParamsUI()));
-
 			connect(ui_.btn_setFT,SIGNAL(clicked()),this,SLOT(setCartesianFTParamsUI()));
+
+			//see if the user want to have cartesian impedance
+			connect(ui_.chk_CartImpedance , SIGNAL(stateChanged(int)),this,SLOT(withCartImpedanceStateChanged(int)));
+			//see if the user want to have cartesian impedance
+			connect(ui_.chk_EnableFT , SIGNAL(stateChanged(int)),this,SLOT(withFTControl(int)));
+
+			//see check the status of each checkbox for enabling F/T or Cartesian Impedance
+			if(ui_.chk_CartImpedance->isChecked())
+				ui_.group_Impedance->setEnabled(true);
+			else
+				ui_.group_Impedance->setEnabled(true);
+
+			if(ui_.chk_EnableFT->isChecked())
+			{
+				ui_.combo_DOF_FT->setEnabled(true);
+				ui_.txt_FTValue->setEnabled(true);
+				ui_.txt_FTStiffness->setEnabled(true);
+				ui_.btn_setFT->setEnabled(true);
+			}
+			else
+			{
+				ui_.combo_DOF_FT->setEnabled(false);
+				ui_.txt_FTValue->setEnabled(false);
+				ui_.txt_FTStiffness->setEnabled(false);
+				ui_.btn_setFT->setEnabled(false);
+			}
+
+		}
+
+		void PathPlanningWidget::withCartImpedanceStateChanged(int state)
+		{
+			if(state)
+			{
+
+				ROS_INFO("User has enabled impedance");
+				ui_.group_Impedance->setEnabled(true);
+			//	pWidget->setEnabled(true);
+			}
+			else
+			{
+				ROS_INFO("User has disabled impedance");
+				ui_.group_Impedance->setEnabled(false);
+			}
+
+		}
+		void PathPlanningWidget::withFTControl(int state)
+		{
+			if(state)
+			{
+				ROS_INFO("User has enabled Force/Torque Control");
+				ui_.combo_DOF_FT->setEnabled(true);
+				ui_.txt_FTValue->setEnabled(true);
+				ui_.txt_FTStiffness->setEnabled(true);
+				ui_.btn_setFT->setEnabled(true);
+			}
+			else
+			{
+				ROS_INFO("User has disabled Force/Torque Control");
+				ui_.combo_DOF_FT->setEnabled(false);
+				ui_.txt_FTValue->setEnabled(false);
+				ui_.txt_FTStiffness->setEnabled(false);
+				ui_.btn_setFT->setEnabled(false);
+			}
 
 		}
 
