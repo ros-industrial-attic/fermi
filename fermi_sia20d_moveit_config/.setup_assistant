@@ -1,8 +1,0 @@
-moveit_setup_assistant_config:
-  URDF:
-    package: motoman_config
-    relative_path: cfg/sia20d_mesh.xml
-  SRDF:
-    relative_path: config/sia20d_mesh.srdf
-  CONFIG:
-    generated_timestamp: 1408435901
