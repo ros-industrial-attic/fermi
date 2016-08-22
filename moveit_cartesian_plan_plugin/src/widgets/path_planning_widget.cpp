@@ -1,6 +1,6 @@
-#include <moveit_cartesian_plan_plugin/widgets/path_planning_widget.h>
-#include <moveit_cartesian_plan_plugin/point_tree_model.h>
-#include <moveit_cartesian_plan_plugin/generate_cartesian_path.h>
+#include <moveit_cartesian_plan_plugin/widgets/path_planning_widget.hpp>
+#include <moveit_cartesian_plan_plugin/point_tree_model.hpp>
+#include <moveit_cartesian_plan_plugin/generate_cartesian_path.hpp>
 
 namespace moveit_cartesian_plan_plugin
 {
@@ -33,7 +33,7 @@ namespace moveit_cartesian_plan_plugin
 			ui_.setupUi(this);
 
       ui_.txtPointName->setText("0");
-      //set up the default values for the MoveIt and Cartesian Path 
+      //set up the default values for the MoveIt and Cartesian Path
       ui_.lnEdit_PlanTime->setText("5.0");
       ui_.lnEdit_StepSize->setText("0.01");
       ui_.lnEdit_JmpThresh->setText("0.0");
@@ -47,7 +47,7 @@ namespace moveit_cartesian_plan_plugin
       ui_.progressBar->setRange(0,100);
       ui_.progressBar->setValue(0);
       ui_.progressBar->hide();
-      
+
 
       QStringList headers;
       headers<<tr("Point")<<tr("Position (m)")<<tr("Orientation (deg)");
@@ -58,10 +58,18 @@ namespace moveit_cartesian_plan_plugin
       ui_.btnAddPoint->setToolTip(tr("Add a new Way-Point"));
       ui_.btnRemovePoint->setToolTip(tr("Remove a selected Way-Point"));
 
+			ui_.combo_DOF_FT->addItem("X");
+			ui_.combo_DOF_FT->addItem("Y");
+			ui_.combo_DOF_FT->addItem("Z");
+
+			ui_.combo_DOF_FT->addItem("Rx");
+			ui_.combo_DOF_FT->addItem("Ry");
+			ui_.combo_DOF_FT->addItem("Rz");
+
       connect(ui_.btnAddPoint,SIGNAL(clicked()),this,SLOT(pointAddUI()));
       connect(ui_.btnRemovePoint,SIGNAL(clicked()),this,SLOT(pointDeletedUI()));
       connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(selectedPoint(const QModelIndex& , const QModelIndex&)));
-      connect(ui_.treeView->model(),SIGNAL(dataChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex&,const QModelIndex&)));
+      connect(ui_.treeView->selectionModel(),SIGNAL(currentChanged(const QModelIndex& , const QModelIndex& )),this,SLOT(treeViewDataChanged(const QModelIndex& , const QModelIndex&)));
       connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(sendCartTrajectoryParamsFromUI()));
       connect(ui_.targetPoint,SIGNAL(clicked()),this,SLOT(parseWayPointBtn_slot()));
       connect(ui_.btn_LoadPath,SIGNAL(clicked()),this,SLOT(loadPointsFromFile()));
@@ -69,7 +77,89 @@ namespace moveit_cartesian_plan_plugin
       connect(ui_.btn_ClearAllPoints,SIGNAL(clicked()),this,SLOT(clearAllPoints_slot()));
 
       connect(ui_.btn_moveToHome,SIGNAL(clicked()),this,SLOT(moveToHomeFromUI()));
-      
+			connect(ui_.combo_planGroup,SIGNAL(currentIndexChanged ( int )),this,SLOT(selectedPlanGroup(int)));
+			connect(ui_.btn_SendCartParams,SIGNAL(clicked()),this,SLOT(setCartesianImpedanceParamsUI()));
+			connect(ui_.btn_setFT,SIGNAL(clicked()),this,SLOT(setCartesianFTParamsUI()));
+
+			//see if the user want to have cartesian impedance
+			connect(ui_.chk_CartImpedance , SIGNAL(stateChanged(int)),this,SLOT(withCartImpedanceStateChanged(int)));
+			//see if the user want to have cartesian impedance
+			connect(ui_.chk_EnableFT , SIGNAL(stateChanged(int)),this,SLOT(withFTControl(int)));
+
+			//see check the status of each checkbox for enabling F/T or Cartesian Impedance
+			if(ui_.chk_CartImpedance->isChecked())
+				ui_.group_Impedance->setEnabled(true);
+			else
+				ui_.group_Impedance->setEnabled(true);
+
+			if(ui_.chk_EnableFT->isChecked())
+			{
+				ui_.combo_DOF_FT->setEnabled(true);
+				ui_.txt_FTValue->setEnabled(true);
+				ui_.txt_FTStiffness->setEnabled(true);
+				ui_.btn_setFT->setEnabled(true);
+			}
+			else
+			{
+				ui_.combo_DOF_FT->setEnabled(false);
+				ui_.txt_FTValue->setEnabled(false);
+				ui_.txt_FTStiffness->setEnabled(false);
+				ui_.btn_setFT->setEnabled(false);
+			}
+
+		}
+
+		void PathPlanningWidget::withCartImpedanceStateChanged(int state)
+		{
+			if(state)
+			{
+
+				ROS_INFO("User has enabled impedance");
+				ui_.group_Impedance->setEnabled(true);
+			//	pWidget->setEnabled(true);
+			}
+			else
+			{
+				ROS_INFO("User has disabled impedance");
+				ui_.group_Impedance->setEnabled(false);
+			}
+
+		}
+		void PathPlanningWidget::withFTControl(int state)
+		{
+			if(state)
+			{
+				ROS_INFO("User has enabled Force/Torque Control");
+				ui_.combo_DOF_FT->setEnabled(true);
+				ui_.txt_FTValue->setEnabled(true);
+				ui_.txt_FTStiffness->setEnabled(true);
+				ui_.btn_setFT->setEnabled(true);
+			}
+			else
+			{
+				ROS_INFO("User has disabled Force/Torque Control");
+				ui_.combo_DOF_FT->setEnabled(false);
+				ui_.txt_FTValue->setEnabled(false);
+				ui_.txt_FTStiffness->setEnabled(false);
+				ui_.btn_setFT->setEnabled(false);
+			}
+
+		}
+
+		void PathPlanningWidget::getCartPlanGroup(std::vector< std::string > group_names)
+		{
+			ROS_INFO("setting the name of the planning group in combo box");
+			int lenght_group = group_names.size();
+
+			for(int i=0;i<lenght_group;i++)
+				{
+					ui_.combo_planGroup->addItem(QString::fromStdString(group_names[i]));
+				}
+		}
+
+		void PathPlanningWidget::selectedPlanGroup(int index)
+		{
+			Q_EMIT sendSendSelectedPlanGroup(index);
 		}
 
     void PathPlanningWidget::sendCartTrajectoryParamsFromUI()
@@ -91,8 +181,8 @@ namespace moveit_cartesian_plan_plugin
     }
     void PathPlanningWidget::pointRange()
     {
-      /*! Get the current range of points from the TreeView. 
-          This is essential for setting up the number of the item that should be run next. 
+      /*! Get the current range of points from the TreeView.
+          This is essential for setting up the number of the item that should be run next.
           Dealing with the data in the TreeView
       */
       QAbstractItemModel *model=ui_.treeView->model();
@@ -114,21 +204,21 @@ namespace moveit_cartesian_plan_plugin
     }
     void PathPlanningWidget::selectedPoint(const QModelIndex& current, const QModelIndex& previous)
     {
-      /*! Get the selected point from the TreeView. 
+      /*! Get the selected point from the TreeView.
           This is used for updating the information of the lineEdit which informs gives the number of the currently selected Way-Point.
       */
-      ROS_INFO("Selected Index Changed");
+      ROS_INFO_STREAM("Selected Index Changed"<<current.row());
 
        if(current.parent()==QModelIndex())
         ui_.txtPointName->setText(QString::number(current.row()));
       else if((current.parent()!=QModelIndex()) && (current.parent().parent() == QModelIndex()))
         ui_.txtPointName->setText(QString::number(current.parent().row()));
-      else 
+      else
         ui_.txtPointName->setText(QString::number(current.parent().parent().row()));
     }
 		void PathPlanningWidget::pointAddUI()
 		{
-        /*! Function for adding new Way-Point from the RQT Widget. 
+        /*! Function for adding new Way-Point from the RQT Widget.
         The user can set the position and orientation of the Way-Point by entering their values in the LineEdit fields.
         This function is connected to the AddPoint button click() signal and sends the addPoint(point_pos) to inform the RViz enviroment that a new Way-Point has been added.
         */
@@ -143,13 +233,12 @@ namespace moveit_cartesian_plan_plugin
         // // create transform
         tf::Transform point_pos( tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z)));
         Q_EMIT addPoint(point_pos);
-        //ROS_INFO_STREAM("Quartenion set at point add UI: "<<q.x()<<"; "<<q.y()<<"; "<<q.z()<<"; "<<q.w()<<";");
 
-        pointRange();         
+        pointRange();
 		}
     void PathPlanningWidget::pointDeletedUI()
     {
-       /*! Function for deleting a Way-Point from the RQT GUI. 
+       /*! Function for deleting a Way-Point from the RQT GUI.
            The name of the Way-Point that needs to be deleted corresponds to the txtPointName line edit field.
            This slot is connected to the Remove Point button signal. After completion of this function a signal is send to Inform the RViz enviroment that a Way-Point has been deleted from the RQT Widget.
        */
@@ -190,7 +279,6 @@ namespace moveit_cartesian_plan_plugin
       }
       else
       {
-      //ROS_INFO_STREAM("Quartenion at add_row: "<<orientation.x()<<"; "<<orientation.y()<<"; "<<orientation.z()<<"; "<<orientation.w()<<";");
 
        if(!model->insertRow(count,model->index(count, 0)))  //&& count==0
        {
@@ -268,20 +356,12 @@ namespace moveit_cartesian_plan_plugin
         pointRange();
     }
 
-    // void PathPlanningWidget::pointPosUpdatedHandler_slot(const tf::Transform& point_pos, const char* marker_name)
-    // {
-    //     ROS_INFO("Starting concurrent process for Way-Point Update in separate thread");
-    //     QFuture<void> future = QtConcurrent::run(this, &PathPlanningWidget::pointPosUpdated_slot, point_pos,marker_name);
-    // }
-
     void PathPlanningWidget::pointPosUpdated_slot(const tf::Transform& point_pos, const char* marker_name)
     {
         /*! When the user updates the position of the Way-Point or the User Interactive Marker, the information in the TreeView also needs to be updated to correspond to the current pose of the InteractiveMarkers.
 
         */
         QAbstractItemModel *model = ui_.treeView->model();
-
-        ROS_INFO_STREAM("Updating marker name:"<<marker_name);
 
         tf::Vector3 p = point_pos.getOrigin();
         tfScalar rx,ry,rz;
@@ -291,12 +371,22 @@ namespace moveit_cartesian_plan_plugin
         ry = RAD2DEG(ry);
         rz = RAD2DEG(rz);
 
+        //set the strings of each axis of the position
+        QString pos_x = QString::number(p.x());
+        QString pos_y = QString::number(p.y());
+        QString pos_z = QString::number(p.z());
+
+        //repeat that with the orientation
+        QString orient_x = QString::number(rx);
+        QString orient_y = QString::number(ry);
+        QString orient_z = QString::number(rz);
+
       if((strcmp(marker_name,"add_point_button") == 0) || (atoi(marker_name)==0))
       {
           QString pos_s;
-          pos_s = QString::number(p.x()) + "; " + QString::number(p.y()) + "; " + QString::number(p.z()) + ";";
+          pos_s = pos_x + "; " + pos_y + "; " + pos_z + ";";
           QString orient_s;
-          orient_s = QString::number(rx) + "; " + QString::number(ry) + "; " + QString::number(rz) + ";";
+          orient_s = orient_x + "; " + orient_y + "; " + orient_z + ";";
 
           model->setData(model->index(0,0),QVariant("add_point_button"),Qt::EditRole);
           model->setData(model->index(0,1),QVariant(pos_s),Qt::EditRole);
@@ -311,15 +401,6 @@ namespace moveit_cartesian_plan_plugin
           QModelIndex chldind_pos = model->index(0, 0, ind);
           QModelIndex chldind_orient = model->index(1, 0, ind);
 
-          //set the strings of each axis of the position
-          QString pos_x = QString::number(p.x());
-          QString pos_y = QString::number(p.y());
-          QString pos_z = QString::number(p.z());
-
-          //repeat that with the orientation
-          QString orient_x = QString::number(rx);
-          QString orient_y = QString::number(ry);
-          QString orient_z = QString::number(rz);
 
           //second we add the current position information, for each position axis separately
           model->setData(model->index(0, 1, chldind_pos), QVariant(pos_x), Qt::EditRole);
@@ -332,6 +413,7 @@ namespace moveit_cartesian_plan_plugin
           model->setData(model->index(2, 2, chldind_orient), QVariant(orient_z), Qt::EditRole);
 //*****************************************************************************************************************************************************************************************
       }
+
     }
 
     void PathPlanningWidget::treeViewDataChanged(const QModelIndex &index,const QModelIndex &index2)
@@ -342,10 +424,11 @@ namespace moveit_cartesian_plan_plugin
       qRegisterMetaType<std::string>("std::string");
       QAbstractItemModel *model = ui_.treeView->model();
       QVariant index_data;
+      ROS_INFO_STREAM("Data changed in index:" << index.row() << "parent row" <<index2.parent().row());
 
       if ((index.parent() == QModelIndex()) && (index.row()!=0))
       {
-        
+
 
       }
       else if(((index.parent().parent()) != QModelIndex()) && (index.parent().parent().row()!=0))
@@ -388,81 +471,75 @@ namespace moveit_cartesian_plan_plugin
 
 void PathPlanningWidget::loadPointsFromFile()
 {
-  /*! Slot that takes care of opening a previously saved Way-Points yaml file.
-      Opens Qt Dialog for selecting the file, opens the file and parses the data. 
-      After reading and parsing the data from the file, the information regarding the pose of the Way-Points is send to the RQT and the RViz so they can update their enviroments.
-  */
-   QString fileName = QFileDialog::getOpenFileName(this,
-         tr("Open Way Points File"), "",
-         tr("Way Points (*.yaml);;All Files (*)"));
+	/*! Slot that takes care of opening a previously saved Way-Points yaml file.
+			Opens Qt Dialog for selecting the file, opens the file and parses the data.
+			After reading and parsing the data from the file, the information regarding the pose of the Way-Points is send to the RQT and the RViz so they can update their enviroments.
+	*/
+	QString fileName = QFileDialog::getOpenFileName(this,
+				tr("Open Way Points File"), "",
+				tr("Way Points (*.yaml);;All Files (*)"));
 
-      if (fileName.isEmpty())
-      {
-         ui_.tabWidget->setEnabled(true);
-         ui_.progressBar->hide();
-         return;
-       }
-     else {
-         ui_.tabWidget->setEnabled(false);
-         ui_.progressBar->show();
-         QFile file(fileName);
+			if (fileName.isEmpty())
+			{
+				ui_.tabWidget->setEnabled(true);
+				ui_.progressBar->hide();
+				return;
+			}
+		else {
+				ui_.tabWidget->setEnabled(false);
+				ui_.progressBar->show();
+				QFile file(fileName);
 
-         if (!file.open(QIODevice::ReadOnly)) {
-             QMessageBox::information(this, tr("Unable to open file"),
-                 file.errorString());
-             file.close();
-             ui_.tabWidget->setEnabled(true);
-             ui_.progressBar->hide();
-             return;
-         }
-          //clear all the scene before loading all the new points from the file!!
-          clearAllPoints_slot();
+				if (!file.open(QIODevice::ReadOnly)) {
+						QMessageBox::information(this, tr("Unable to open file"),
+								file.errorString());
+						file.close();
+						ui_.tabWidget->setEnabled(true);
+						ui_.progressBar->hide();
+						return;
+				}
+					//clear all the scene before loading all the new points from the file!!
+					clearAllPoints_slot();
 
-          ROS_INFO_STREAM("Opening the file: "<<fileName.toStdString());
-          std::ifstream fin(fileName.toStdString().c_str());
+					ROS_INFO_STREAM("Opening the file: "<<fileName.toStdString());
+					std::string fin(fileName.toStdString());
 
-        YAML::Node doc;
-    #ifdef HAVE_NEW_YAMLCPP
-        doc = YAML::Load(fin);
-    #else
-        YAML::Parser parser(fin);
-        parser.GetNextDocument(doc);
-    #endif
+		YAML::Node doc;
+			doc = YAML::LoadFile(fin);
+				//define double for percent of completion
+				double percent_complete;
+				int end_of_doc = doc.size();
 
-        //define double for percent of completion
-        double percent_complete;
-        int end_of_doc = doc.size();
+				for (size_t i = 0; i < end_of_doc; i++) {
+					std::string name;
+					geometry_msgs::Pose pose;
+					tf::Transform pose_tf;
 
-        for (size_t i = 0; i < end_of_doc; i++) {
-          std::string name;
-          geometry_msgs::Pose pose;
-          tf::Transform pose_tf;
-         
-          double x,y,z,rx, ry, rz;
-          doc[i]["name"] >> name;
-          doc[i]["point"][0] >> x;
-          doc[i]["point"][1] >> y;
-          doc[i]["point"][2] >> z;
-          doc[i]["point"][3] >> rx;
-          doc[i]["point"][4] >> ry;
-          doc[i]["point"][5] >> rz;
+					double x,y,z,rx, ry, rz;
+					name = doc[i]["name"].as<std::string>();
+					x = doc[i]["point"][0].as<double>();
+					y = doc[i]["point"][1].as<double>();
+					z = doc[i]["point"][2].as<double>();
+					rx = doc[i]["point"][3].as<double>();
+					ry = doc[i]["point"][4].as<double>();
+					rz = doc[i]["point"][5].as<double>();
 
-          rx = DEG2RAD(rx);
-          ry = DEG2RAD(ry);
-          rz = DEG2RAD(rz);
+					rx = DEG2RAD(rx);
+					ry = DEG2RAD(ry);
+					rz = DEG2RAD(rz);
 
-          pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
+					pose_tf = tf::Transform(tf::createQuaternionFromRPY(rx,ry,rz),tf::Vector3(x,y,z));
 
-          percent_complete = (i+1)*100/end_of_doc;
-          ui_.progressBar->setValue(percent_complete);
-          Q_EMIT addPoint(pose_tf);
-        }
-        ui_.tabWidget->setEnabled(true);
-        ui_.progressBar->hide();
-      }
-    }
-    void PathPlanningWidget::savePointsToFile()
-    {
+					percent_complete = (i+1)*100/end_of_doc;
+					ui_.progressBar->setValue(percent_complete);
+					Q_EMIT addPoint(pose_tf);
+				}
+				ui_.tabWidget->setEnabled(true);
+				ui_.progressBar->hide();
+			}
+}
+void PathPlanningWidget::savePointsToFile()
+{
       /*! Just inform the RViz enviroment that Save Way-Points button has been pressed.
        */
       Q_EMIT saveToFileBtn_press();
@@ -476,14 +553,14 @@ void PathPlanningWidget::loadPointsFromFile()
       ui_.txtPointName->setText("0");
       tf::Transform t;
       t.setIdentity();
-      insertRow(t,0); 
+      insertRow(t,0);
       pointRange();
 
       Q_EMIT clearAllPoints_signal();
     }
     void PathPlanningWidget::setAddPointUIStartPos(const std::string robot_model_frame,const tf::Transform end_effector)
     {
-        /*! Setting the default values for the Add New Way-Point from the RQT. 
+        /*! Setting the default values for the Add New Way-Point from the RQT.
             The information is taken to correspond to the pose of the loaded Robot end-effector.
         */
         tf::Vector3 p = end_effector.getOrigin();
@@ -512,7 +589,7 @@ void PathPlanningWidget::loadPointsFromFile()
       */
       ui_.tabWidget->setEnabled(false);
       ui_.targetPoint->setEnabled(false);
-      
+
     }
     void PathPlanningWidget::cartesianPathFinishedHandler()
     {
@@ -537,6 +614,77 @@ void PathPlanningWidget::loadPointsFromFile()
       Q_EMIT moveToHomeFromUI_signal();
     }
 
+		void PathPlanningWidget::setCartesianImpedanceParamsUI()
+		{
+			cartesian_impedance_msgs::SetCartesianImpedancePtr cart_vals(new cartesian_impedance_msgs::SetCartesianImpedance);
+
+			//stiffness Ttranslational
+			cart_vals->stiffness.translational.x = ui_.txt_Stiffness_X->text().toDouble();
+			cart_vals->stiffness.translational.y = ui_.txt_Stiffness_Y->text().toDouble();
+			cart_vals->stiffness.translational.z = ui_.txt_Stiffness_Z->text().toDouble();
+			//stiffness Rotational
+			cart_vals->stiffness.rotational.x = ui_.txt_Stiffness_RX->text().toDouble();
+			cart_vals->stiffness.rotational.y = ui_.txt_Stiffness_RY->text().toDouble();
+			cart_vals->stiffness.rotational.z = ui_.txt_Stiffness_RZ->text().toDouble();
+
+			//damping Ttranslational
+			cart_vals->damping.translational.x = ui_.txt_Damping_X->text().toDouble();
+			cart_vals->damping.translational.y = ui_.txt_Damping_Y->text().toDouble();
+			cart_vals->damping.translational.z = ui_.txt_Damping_Z->text().toDouble();
+			//damping Rotational
+			cart_vals->damping.rotational.x = ui_.txt_Damping_RX->text().toDouble();
+			cart_vals->damping.rotational.y = ui_.txt_Damping_RY->text().toDouble();
+			cart_vals->damping.rotational.z = ui_.txt_Damping_RZ->text().toDouble();
+
+			//Maximum Cartesian Velocity Linear
+			cart_vals->max_cart_vel.set.linear.x = ui_.txt_MaxVel_X->text().toDouble();
+			cart_vals->max_cart_vel.set.linear.y = ui_.txt_MaxVel_Y->text().toDouble();
+			cart_vals->max_cart_vel.set.linear.z = ui_.txt_MaxVel_Z->text().toDouble();
+			//Maximum Cartesian Velocity Angular
+			cart_vals->max_cart_vel.set.angular.x = ui_.txt_MaxVel_RX->text().toDouble();
+			cart_vals->max_cart_vel.set.angular.y = ui_.txt_MaxVel_RY->text().toDouble();
+			cart_vals->max_cart_vel.set.angular.z = ui_.txt_MaxVel_RZ->text().toDouble();
+
+
+			//Maximum Control Force Linear
+			cart_vals->max_ctrl_force.set.force.x = ui_.txt_MaxCtrlForce_X->text().toDouble();
+			cart_vals->max_ctrl_force.set.force.y = ui_.txt_MaxCtrlForce_Y->text().toDouble();
+			cart_vals->max_ctrl_force.set.force.z = ui_.txt_MaxCtrlForce_Z->text().toDouble();
+			//Maximum Control Force Angular
+			cart_vals->max_ctrl_force.set.torque.x = ui_.txt_MaxCtrlForce_RX->text().toDouble();
+			cart_vals->max_ctrl_force.set.torque.y = ui_.txt_MaxCtrlForce_RY->text().toDouble();
+			cart_vals->max_ctrl_force.set.torque.z = ui_.txt_MaxCtrlForce_RZ->text().toDouble();
+
+			//Maximum Cartesian Path Deviation Translation
+			cart_vals->max_path_deviation.translation.x = ui_.txt_MaxPathDev_X->text().toDouble();
+			cart_vals->max_path_deviation.translation.y = ui_.txt_MaxPathDev_Y->text().toDouble();
+			cart_vals->max_path_deviation.translation.z = ui_.txt_MaxPathDev_Z->text().toDouble();
+			//Maximum Cartesian Path Deviation Rotation
+			cart_vals->max_path_deviation.rotation.x = ui_.txt_MaxPathDev_RX->text().toDouble();
+			cart_vals->max_path_deviation.rotation.y = ui_.txt_MaxPathDev_RY->text().toDouble();
+			cart_vals->max_path_deviation.rotation.z = ui_.txt_MaxPathDev_RZ->text().toDouble();
+
+			//NullSpace reduntant joint parameters
+			cart_vals->null_space_params.stiffness.push_back(ui_.txt_NullSpace_Stiffness->text().toDouble());
+		  cart_vals->null_space_params.damping.push_back(ui_.txt_NullSpace_Damping->text().toDouble());
+
+			Q_EMIT setCartesianImpedanceParamsUI_signal(cart_vals);
+
+			cart_vals->null_space_params.damping.clear();
+			cart_vals->null_space_params.stiffness.clear();
+		}
+
+		void PathPlanningWidget::setCartesianFTParamsUI()
+		{
+			cartesian_impedance_msgs::SetCartesianForceCtrlPtr ft_vals(new cartesian_impedance_msgs::SetCartesianForceCtrl);
+			QByteArray dof = ui_.combo_DOF_FT->currentText().toLatin1();
+			ft_vals->DOF = dof.data();
+
+			ft_vals->force 		 = ui_.txt_FTValue->text().toDouble();
+			ft_vals->stiffness = ui_.txt_FTStiffness->text().toDouble();
+
+			setCartesianFTParamsUI_signal(ft_vals);
+		}
+
   }
 }
-

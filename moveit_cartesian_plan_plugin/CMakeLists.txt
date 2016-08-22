@@ -27,21 +27,24 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 set(moveit_cartesian_plan_plugin_SRCS
   src/add_way_point.cpp
-  src/on_mouse_click.cpp
   src/point_tree_item.cpp
   src/point_tree_model.cpp
   src/widgets/path_planning_widget.cpp
   src/generate_cartesian_path.cpp
+  src/set_cart_impedance.cpp
+  src/set_cart_ft_control.cpp
   ${MOC_FILES}
 )
 
 set(moveit_cartesian_plan_plugin_HDRS
-  include/moveit_cartesian_plan_plugin/add_way_point.h
-  include/moveit_cartesian_plan_plugin/on_mouse_click.h
-  include/moveit_cartesian_plan_plugin/point_tree_item.h
-  include/moveit_cartesian_plan_plugin/point_tree_model.h
-  include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.h
-  include/moveit_cartesian_plan_plugin/generate_cartesian_path.h
+  include/moveit_cartesian_plan_plugin/add_way_point.hpp
+  include/moveit_cartesian_plan_plugin/point_tree_item.hpp
+  include/moveit_cartesian_plan_plugin/point_tree_model.hpp
+  include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.hpp
+  include/moveit_cartesian_plan_plugin/generate_cartesian_path.hpp
+  include/moveit_cartesian_plan_plugin/set_cart_impedance.hpp
+  include/moveit_cartesian_plan_plugin/set_cart_ft_control.hpp
+
 )
 
 set(moveit_cartesian_plan_plugin_UIS
@@ -56,7 +59,7 @@ set(moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES
 catkin_package(
   INCLUDE_DIRS ${moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES}
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS 
+  CATKIN_DEPENDS
   interactive_markers
   pluginlib
   roscpp
@@ -71,8 +74,8 @@ qt4_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UI
 
 include_directories(${moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} ${moveit_cartesian_plan_plugin_SRCS} ${moveit_cartesian_plan_plugin_MOCS} ${moveit_cartesian_plan_plugin_UIS_H}) # ${moveit_cartesian_plan_plugin_UIS_H}
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${moveit_move_group_interface})
-target_link_libraries(${PROJECT_NAME} yaml-cpp)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${moveit_move_group_interface} yaml-cpp)
+## target_link_libraries(${PROJECT_NAME} yaml-cpp)
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
