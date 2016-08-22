@@ -4,7 +4,7 @@
 #include <math.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit_cartesian_plan_plugin/generate_cartesian_path.h>
+#include <moveit_cartesian_plan_plugin/generate_cartesian_path.hpp>
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -46,7 +46,7 @@ void GenerateCartesianPath::init()
   kmodel_ = robot_model_loader->getModel();
 
   end_eff_joint_groups = kmodel_->getEndEffectors();
-  
+
 
   ROS_INFO_STREAM("size of the end effectors is: "<<end_eff_joint_groups.size());
 
@@ -249,7 +249,7 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kmodel_->getJointModelGroup(group_names[selected_plan_group]);
-   
+
   ROS_INFO("End effector link is not empty");
   const Eigen::Affine3d &end_effector_state = kinematic_state_->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
   tf::transformEigenToTF(end_effector_state, end_effector);
