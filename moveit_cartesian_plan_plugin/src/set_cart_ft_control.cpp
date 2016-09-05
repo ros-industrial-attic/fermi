@@ -13,7 +13,7 @@ SetCartesianFTControl::SetCartesianFTControl(QObject *parent)
 }
 SetCartesianFTControl::~SetCartesianFTControl()
 {
-  /*! The destructor resets the moveit_group_ and the kinematic_state of the robot.
+  /*! The destructor for the cartesian Force Control. Currently empty
   */
 }
 

@@ -20,11 +20,11 @@
 #define SET_CARTESIAN_IMPEDANCE_H_
 
 /*!
- *  \brief     Class for setting up the MoveIt enviroment.
- *  \details   The GenerateCartesianPath Class handles all the interactions with the MoveIt enviroment.
+ *  \brief     Class for setting up the Cartesian Impedance msgs and UI parameters.
+ *  \details   The SetCartesianImpedance Class handles all the interactions with the Qt UI.
  	 		   This Class inherits from the QObject superclass.
- 	 		   The concept of this class is to initialize all the necessary parameters for generating Cartesian Path from Way-Points.
- 	 		   It gets the necessary Way-Points and handles them in the Cartesian Path Planner of the MoveIt. Furthermore it checks if a Way-Point is inside the IK solution for the loaded robot and changes it state correspondingly.
+ 	 		   The concept of this class is to initialize all the necessary parameters for setting Cartesian Impedance parameters set from the UI..
+ 	 		   It gets the necessary parameters for Cartesian Impedance and sends them via particular topic to the robot driver.
  *  \author    Risto Kojcev
  */
 
