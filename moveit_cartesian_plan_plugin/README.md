@@ -30,7 +30,7 @@ After this step you can add the new panel from the panel tab of the RViz envirom
 
 As part of GSoC 2016, the plugin now supports Cartesian Impedance/Force Path Planning.
 To use this feature you need to get the new developed ROS messages contained in the [fermi repository](https://github.com/ros-industrial-consortium/majorana).
-The user can set the Cartesian Impedance/Force Control parameters vis the UI. Depends on the particular robot the user can set this parameters as well as switch between Impedance or Force Control during runtime.
+The user can set the Cartesian Impedance/Force Control parameters via the UI. Depending on the particular robot driver or controller, the user can set the Impedance or Force Control parameters as well as switch between them during runtime.
 
 
 For more detailed tutorial please refer to this [page](http://wiki.ros.org/moveit_cartesian_plan_plugin).
