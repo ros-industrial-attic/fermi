@@ -14,7 +14,9 @@
 #include <ui_path_planning_widget.h>
 
 #include <moveit_cartesian_plan_plugin/add_way_point.hpp>
-
+/*!
+ *  \brief The set of messages necessary to publish Cartesian Impedance/Force Control parameters via ROS Topic
+*/
 #include <cartesian_impedance_msgs/SetCartesianImpedance.h>
 #include <cartesian_impedance_msgs/SetCartesianForceCtrl.h>
 
@@ -53,6 +55,8 @@ namespace moveit_cartesian_plan_plugin
  *  \details   The PathPlanningWidget Class handles all User Interactions with the RQT GUI.
  	 		   This Class inherits from the QWidget superclass.
  	 		   The concept of the RQT widget is to add the same possabilities as the UI from the RViz enviroment and enabling simultanious communication betweet the RViz Enviroment and the RQT GUI.
+				 The updated plugin also allows Impedance/Force Control parameters to be set via the Qt UI of the plugin.
+				 Of course you need to make sure that you have implemented this in the particular robot driver.
  *  \author    Risto Kojcev
  */
 
@@ -126,10 +130,11 @@ namespace moveit_cartesian_plan_plugin
 
 			//! Create a slot to call a signal on which the Move the robot to home position function is called
 			void moveToHomeFromUI();
-
+			// set the read the Cartesian Impedance parameters from the UI and send them to the designated topic.
 			void setCartesianImpedanceParamsUI();
+			// set the read the Cartesian Force parameters from the UI and send them to the designated topic.
 			void setCartesianFTParamsUI();
-			//! Check if the user wants to have cartesian impedance enabled
+			//! Check if the user wants to have cartesian Impedance enabled (check if depreciated)
 			void withCartImpedanceStateChanged(int state);
 
 			//! Check if the user wants to have F/T control from the UI
@@ -154,8 +159,9 @@ namespace moveit_cartesian_plan_plugin
 		    void moveToHomeFromUI_signal();
 
 				void sendSendSelectedPlanGroup(int index);
-
+				//signaling the Qt that the Impedance params have changed via the UI
 				void setCartesianImpedanceParamsUI_signal(cartesian_impedance_msgs::SetCartesianImpedancePtr cart_impedance_params);
+				//signaling the Qt that the Force params have changed via the UI
 				void setCartesianFTParamsUI_signal(cartesian_impedance_msgs::SetCartesianForceCtrlPtr cart_ft_params);
 
 		};

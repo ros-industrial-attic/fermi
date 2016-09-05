@@ -13,7 +13,7 @@ SetCartesianImpedance::SetCartesianImpedance(QObject *parent)
 }
 SetCartesianImpedance::~SetCartesianImpedance()
 {
-  /*! The destructor resets the moveit_group_ and the kinematic_state of the robot.
+  /*! The destructor for the cartesian Impedance Control. Currently empty...
   */
 }
 
@@ -27,7 +27,7 @@ void SetCartesianImpedance::init()
 
 void SetCartesianImpedance::sendCartImpedanceParams(cartesian_impedance_msgs::SetCartesianImpedancePtr cart_impedance_params)
 {
-  /*! Publish the Cartesian Impedance Control Parameters set from the UI
+  /*! Publish the Cartesian Impedance Control Parameters that are set from the UI
         .
   */
   cartesian_impedance_params_pub.publish(cart_impedance_params);

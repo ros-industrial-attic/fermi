@@ -31,6 +31,7 @@
 
 #include <moveit_cartesian_plan_plugin/generate_cartesian_path.hpp>
 
+// necessary includes for Impedance and Force Control
 #include <moveit_cartesian_plan_plugin/set_cart_impedance.hpp>
 #include <moveit_cartesian_plan_plugin/set_cart_ft_control.hpp>
 
