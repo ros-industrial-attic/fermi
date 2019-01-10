@@ -1,6 +1,6 @@
-#include <moveit_cartesian_plan_plugin/widgets/path_planning_widget.h>
-#include <moveit_cartesian_plan_plugin/point_tree_model.h>
-#include <moveit_cartesian_plan_plugin/generate_cartesian_path.h>
+#include <moveit_cartesian_plan_plugin/widgets/path_planning_widget.hpp>
+#include <moveit_cartesian_plan_plugin/point_tree_model.hpp>
+#include <moveit_cartesian_plan_plugin/generate_cartesian_path.hpp>
 
 namespace moveit_cartesian_plan_plugin
 {

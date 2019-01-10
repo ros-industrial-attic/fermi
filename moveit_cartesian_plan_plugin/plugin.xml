@@ -6,12 +6,5 @@
       Tool for adding spherical way points for trajectory generation.
     </description>
   </class>
-    <class name="moveit_cartesian_plan_plugin/OnMouseClick"
-         type="moveit_cartesian_plan_plugin::OnMouseClick"
-         base_class_type="rviz::Tool">
-    <description>
-      Mouse Click detection tool.
-    </description>
-  </class>
 
 </library>
