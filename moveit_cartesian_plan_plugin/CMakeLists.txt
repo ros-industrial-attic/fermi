@@ -17,9 +17,9 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
 )
 
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
-
-include(${QT_USE_FILE})
+# find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+find_package(Qt5 COMPONENTS Core Widgets Gui Concurrent REQUIRED)
 
 ## I prefer the Qt signals and slots to avoid defining "emit", "slots",
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
@@ -63,14 +63,17 @@ catkin_package(
   rqt_gui_cpp
   visualization_msgs
 )
+include_directories(${moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES} 
+  ${catkin_INCLUDE_DIRS})
 
-qt4_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})
-qt4_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
 
-include_directories(${moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
+qt5_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})
+qt5_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
+
 add_library(${PROJECT_NAME} ${moveit_cartesian_plan_plugin_SRCS} ${moveit_cartesian_plan_plugin_MOCS} ${moveit_cartesian_plan_plugin_UIS_H}) # ${moveit_cartesian_plan_plugin_UIS_H}
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${moveit_move_group_interface} yaml-cpp)
-## target_link_libraries(${PROJECT_NAME} yaml-cpp)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${moveit_move_group_interface} yaml-cpp)
+
+qt5_use_modules(${PROJECT_NAME} Core Widgets Gui Concurrent)
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
