@@ -1,17 +1,9 @@
 // MoveIt!
-//#include <moveit/move_group_interface/move_group.h>
-
-//#include <moveit/move_group_interface/move_group.h>
-
-//#include <moveit/planning_interface/move_group_interface.h>
 
 #include <moveit/move_group_interface/move_group_interface.h>
 
-// #include <moveit/planning_interface/move_group_interface.h>
-// #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-// #include <moveit/planning_interface/planning_interface.h>
 
 #include <tf/tf.h>
 #include <tf_conversions/tf_eigen.h>
@@ -22,7 +14,6 @@
 
 #include <QObject>
 #include <QTimer>
-// #include <QtConcurrentRun>
 #include <QtConcurrent/QtConcurrent>
 #include <QFuture>
 
@@ -31,7 +22,6 @@
 #define GENERATE_CARTESIAN_PATH_H_
 
 namespace move_group_interface = moveit::planning_interface;
-
 typedef boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> MoveGroupPtr;
 typedef boost::shared_ptr<robot_model_loader::RobotModelLoader> RobotModelLoaderPtr;
 
@@ -89,32 +79,31 @@ Q_SIGNALS:
 	//! Send the planning groups to the GUI
 	void sendCartPlanGroup(std::vector< std::string > group_names);
 protected:
-    //! MoveIt protected variables.
+  //! MoveIt protected variables.
 	moveit::core::RobotStatePtr kinematic_state_;
 	const moveit::core::JointModelGroup* joint_model_group_;
-  	MoveGroupPtr moveit_group_;
+	MoveGroupPtr moveit_group_;
 	robot_model::RobotModelConstPtr kmodel_;
 	RobotModelLoaderPtr robot_model_loader;
 
 	tf::Transform end_effector;
-
 
 	std::vector< std::string > group_names;
 	int selected_plan_group;
 	std::string target_frame_;
 	std::vector< const moveit::core::JointModelGroup * >  end_eff_joint_groups;
 
-    //! MoveIt and Cartesian path parameters set by the user from the QT UI
-    //! Parameter for setting the planning time of the MoveIt.
-    double PLAN_TIME_;
-    //! Parameter for setting the Cartesian Path step size.
-    double CART_STEP_SIZE_;
-    //! Parameter for setting the Jump Threshold of the Cartesian Path.
-    double CART_JUMP_THRESH_;
-    //! Allow MoveIt to replan.
-    bool MOVEIT_REPLAN_;
-    //! Generate Cartesian Path that avoids collisions.
-    bool AVOID_COLLISIONS_;
+  //! MoveIt and Cartesian path parameters set by the user from the QT UI
+  //! Parameter for setting the planning time of the MoveIt.
+  double PLAN_TIME_;
+  //! Parameter for setting the Cartesian Path step size.
+  double CART_STEP_SIZE_;
+  //! Parameter for setting the Jump Threshold of the Cartesian Path.
+  double CART_JUMP_THRESH_;
+  //! Allow MoveIt to replan.
+  bool MOVEIT_REPLAN_;
+  //! Generate Cartesian Path that avoids collisions.
+  bool AVOID_COLLISIONS_;
 
 };
 

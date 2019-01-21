@@ -17,7 +17,6 @@
 
 #include <QWidget>
 #include <QTimer>
-// #include <QtConcurrentRun>
 #include <QtConcurrent/QtConcurrent>
 #include <QMainWindow>
 #include <QTreeView>
@@ -81,7 +80,7 @@ namespace moveit_cartesian_plan_plugin
 			void pointRange();
 		protected Q_SLOTS:
 			//! Initialize the TreeView with the User Interactive Marker.
-		    void initTreeView();
+	    void initTreeView();
 		    //! Handle the event of a Way-Point deleted from the RQT UI.
 			void pointDeletedUI();
 			//! Handle the event of a Way-Point added from the RQT UI.
@@ -126,25 +125,24 @@ namespace moveit_cartesian_plan_plugin
 			void moveToHomeFromUI();
 		Q_SIGNALS:
 			//! Notify RViz enviroment that a new Way-Point has been added from RQT.
-		    void addPoint( const tf::Transform point_pos );
-		    //! Notify RViz enviroment that a new Way-Point has been deleted from RQT.
-		    void pointDelUI_signal( std::string marker_name);
-		    //! Notify RViz enviroment that a new Way-Point has been modified from RQT.
-		    void pointPosUpdated_signal( const tf::Transform& position, const char* marker_name);
-		    //! Signal to notify the Cartesian Path Planning Class that an Execute Cartesian Plan button has been pressed.
-		    void parseWayPointBtn_signal();
-		    //! Save to file button has been pressed.
-		    void saveToFileBtn_press();
-		    //! Signal that clear all points button has been pressed.
-		    void clearAllPoints_signal();
-		    //! Signal that the Cartesian Plan execution button has been pressed.
-		    void cartesianPathParamsFromUI_signal(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_);
+	    void addPoint( const tf::Transform point_pos );
+	    //! Notify RViz enviroment that a new Way-Point has been deleted from RQT.
+	    void pointDelUI_signal( std::string marker_name);
+	    //! Notify RViz enviroment that a new Way-Point has been modified from RQT.
+	    void pointPosUpdated_signal( const tf::Transform& position, const char* marker_name);
+	    //! Signal to notify the Cartesian Path Planning Class that an Execute Cartesian Plan button has been pressed.
+	    void parseWayPointBtn_signal();
+	    //! Save to file button has been pressed.
+	    void saveToFileBtn_press();
+	    //! Signal that clear all points button has been pressed.
+	    void clearAllPoints_signal();
+	    //! Signal that the Cartesian Plan execution button has been pressed.
+	    void cartesianPathParamsFromUI_signal(double plan_time_,double cart_step_size_, double cart_jump_thresh_, bool moveit_replan_,bool avoid_collisions_);
 
-		    //! On this signal we will call the function for which will exectute the MoveIt command to bring the robot in its initial state.
-		    void moveToHomeFromUI_signal();
+	    //! On this signal we will call the function for which will exectute the MoveIt command to bring the robot in its initial state.
+	    void moveToHomeFromUI_signal();
 
-				void sendSendSelectedPlanGroup(int index);
-
+			void sendSendSelectedPlanGroup(int index);
 		};
 	}
 

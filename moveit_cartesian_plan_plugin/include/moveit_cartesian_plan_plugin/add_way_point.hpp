@@ -38,7 +38,6 @@
 #include <QHBoxLayout>
 #include <QTimer>
 #include <QtConcurrent/QtConcurrent>
-// #include <QtConcurrentRun>
 #include <QFuture>
 
 #endif
@@ -71,13 +70,13 @@ public:
 	AddWayPoint(QWidget* parent = 0);
 	//! Virtual Destructor for the RViz Panel.
 	virtual ~AddWayPoint();
-    //! RViz panel initialization
+  //! RViz panel initialization
 	virtual void onInitialize();
 
 	//! Fucntion for all the interactive marker interactions
 	virtual void processFeedback( const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback );
 
-    //! Make a new Interactive Marker Way-Point
+  //! Make a new Interactive Marker Way-Point
 	virtual void makeArrow(const tf::Transform& point_pos,int count_arrow);
 	//! User Interaction Arrow Marker
 	virtual void makeInteractiveMarker();
@@ -89,27 +88,27 @@ private:
 	Marker makeInterArrow( InteractiveMarker &msg );
 	//! Create controls for each different marker. Here we have control for the defaulot starting control ArrowMarkers(the cartesian way points)
 	InteractiveMarkerControl& makeArrowControlDefault(InteractiveMarker &msg );
-    //! 6DOF control for the Ingteractive Markers
+  //! 6DOF control for the Ingteractive Markers
 	InteractiveMarkerControl& makeArrowControlDetails(InteractiveMarker &msg );
 
 	//! The box control can be used as a pointer to a certain 3D location and when clicked it will add a arrow to that location.
 	InteractiveMarkerControl& makeInteractiveMarkerControl( InteractiveMarker &msg_box );
-    //! Function to handle the entries made from the Way-Points interactive markers Menu.
+  //! Function to handle the entries made from the Way-Points interactive markers Menu.
 	virtual void changeMarkerControlAndPose(std::string marker_name,bool set_control);
 
-    //! Define a server for the Interactive Markers.
-    boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
+  //! Define a server for the Interactive Markers.
+  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
 	interactive_markers::MenuHandler menu_handler;
 
-    //! Vector for storing all the User Entered Way-Points.
+  //! Vector for storing all the User Entered Way-Points.
 	std::vector<tf::Transform> waypoints_pos;
 	//! The position of the User handlable Interactive Marker.
 	tf::Transform box_pos;
 
     //! Variable for storing the count of the Way-Points.
 	int count;
-    //! Target Frame for the Transformation.
-    std::string target_frame_;
+  //! Target Frame for the Transformation.
+  std::string target_frame_;
 
 protected Q_SLOTS:
 	//! rviz::Panel virtual functions for loading Panel Configuration.
@@ -148,12 +147,12 @@ Q_SIGNALS:
 	//! Signal to check if the way-point is in valid IK solution.
 	void onUpdatePosCheckIkValidity(const geometry_msgs::Pose& waypoint,const int point_number);
 
-
 protected:
 	//! The class that GUI RQT User Interactions.
-    QWidget *widget_;
-    //! The Object for the MoveIt components.
-    QObject *path_generate;
+  QWidget *widget_;
+  //! The Object for the MoveIt components.
+  QObject *path_generate;
+
 private:
 	//! Define constants for color, arrow size, etc.
 	std_msgs::ColorRGBA WAY_POINT_COLOR;
