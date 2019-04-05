@@ -17,12 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   moveit_ros_move_group
   moveit_ros_planning_interface
-  moveit_ros_warehouse
-  moveit_ros_perception
 )
-#  moveit_ros_move_group
-#  moveit_ros_planning_interface
-# find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 
@@ -45,13 +40,7 @@ endif()
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
-add_definitions(-std=c++11) 
 
-# # include(${QT_USE_FILE})
-#
-# ## I prefer the Qt signals and slots to avoid defining "emit", "slots",
-# ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
-# add_definitions(-DQT_NO_KEYWORDS)
 
 # Support new yaml-cpp API.
 find_package(PkgConfig)
@@ -104,11 +93,6 @@ catkin_package(
   visualization_msgs
 )
 
-# qt4_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})
-# qt4_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
-
-# qt_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
-
 # ensure generated header files are being created in the devel space
 set(_cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_CURRENT_BINARY_DIR "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}")
@@ -120,7 +104,7 @@ if(rviz_QT_VERSION VERSION_LESS "5")
     qt4_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
 else()
    message("Wrapping qt5 cpp")
-   qt5_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})  
+   qt5_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})
    message("Wrapping qt5 ui")
    qt5_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
 endif()
@@ -135,9 +119,6 @@ target_link_libraries(${PROJECT_NAME}
   yaml-cpp
   ${Boost_LIBRARIES}
   ${QT_LIBRARIES})
-  # ${QT_QTCORE_LIBRARY}
-  # ${QT_QTGUI_LIBRARY}
-## target_link_libraries(${PROJECT_NAME} yaml-cpp)
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
@@ -145,7 +126,6 @@ class_loader_hide_library_symbols(${PROJECT_NAME})
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  # RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
 install(FILES plugin.xml

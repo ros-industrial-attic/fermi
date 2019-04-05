@@ -1,17 +1,7 @@
 // MoveIt!
-//#include <moveit/move_group_interface/move_group.h>
-
-//#include <moveit/move_group_interface/move_group.h>
-
-//#include <moveit/planning_interface/move_group_interface.h>
-
 #include <moveit/move_group_interface/move_group_interface.h>
-
-// #include <moveit/planning_interface/move_group_interface.h>
-// #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
-// #include <moveit/planning_interface/planning_interface.h>
 
 #include <tf/tf.h>
 #include <tf_conversions/tf_eigen.h>
@@ -22,7 +12,6 @@
 
 #include <QObject>
 #include <QTimer>
-// #include <QtConcurrentRun>
 #include <QtConcurrent/QtConcurrent>
 #include <QFuture>
 
