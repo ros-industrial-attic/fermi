@@ -19,8 +19,6 @@
 #ifndef GENERATE_CARTESIAN_PATH_H_
 #define GENERATE_CARTESIAN_PATH_H_
 
-namespace move_group_interface = moveit::planning_interface;
-
 typedef boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> MoveGroupPtr;
 typedef boost::shared_ptr<robot_model_loader::RobotModelLoader> RobotModelLoaderPtr;
 
