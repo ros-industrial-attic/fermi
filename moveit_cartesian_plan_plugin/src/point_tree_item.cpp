@@ -1,6 +1,6 @@
 #include <QStringList>
 
- #include <moveit_cartesian_plan_plugin/point_tree_item.h>
+ #include <moveit_cartesian_plan_plugin/point_tree_item.hpp>
 
 PointTreeItem::PointTreeItem(const QVector<QVariant> &data, PointTreeItem *parent)
 {

@@ -1,5 +1,5 @@
 
-#include <moveit_cartesian_plan_plugin/add_way_point.h>
+#include <moveit_cartesian_plan_plugin/add_way_point.hpp>
 
 
 namespace moveit_cartesian_plan_plugin

@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.1)
+message("start building cartesian plugin")
+add_compile_options(-std=c++11)
 
 project(moveit_cartesian_plan_plugin)
 
@@ -11,21 +13,43 @@ find_package(catkin REQUIRED COMPONENTS
   rqt_gui_cpp
   rviz
   visualization_msgs
-  moveit_ros_move_group
-  moveit_ros_planning_interface
   tf
   tf_conversions
+  moveit_ros_move_group
+  moveit_ros_planning_interface
 )
 
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-include(${QT_USE_FILE})
+# Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
+if(NOT EIGEN3_INCLUDE_DIRS)
+  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+endif()
 
-## I prefer the Qt signals and slots to avoid defining "emit", "slots",
-## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
+# Qt Stuff
+if(rviz_QT_VERSION VERSION_LESS "5")
+	find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtWidgets QtCore QtGui)
+	include(${QT_USE_FILE})
+  set(QT_LIBRARIES ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+else()
+  find_package(Qt5Widgets REQUIRED)
+  find_package(Qt5Concurrent REQUIRED)
+	set(QT_LIBRARIES Qt5::Widgets Qt5::Concurrent)
+endif()
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
 
-set(moveit_cartesian_plan_plugin_SRCS
+
+# Support new yaml-cpp API.
+find_package(PkgConfig)
+pkg_check_modules(NEW_YAMLCPP yaml-cpp>=0.5)
+if(NEW_YAMLCPP_FOUND)
+  add_definitions(-DHAVE_NEW_YAMLCPP)
+endif(NEW_YAMLCPP_FOUND)
+
+set(${PROJECT_NAME}_SRCS
   src/add_way_point.cpp
   src/point_tree_item.cpp
   src/point_tree_model.cpp
@@ -34,22 +58,27 @@ set(moveit_cartesian_plan_plugin_SRCS
   ${MOC_FILES}
 )
 
-set(moveit_cartesian_plan_plugin_HDRS
-  include/moveit_cartesian_plan_plugin/add_way_point.h
-  include/moveit_cartesian_plan_plugin/point_tree_item.h
-  include/moveit_cartesian_plan_plugin/point_tree_model.h
-  include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.h
-  include/moveit_cartesian_plan_plugin/generate_cartesian_path.h
+set(${PROJECT_NAME}_HDRS
+  include/moveit_cartesian_plan_plugin/add_way_point.hpp
+  include/moveit_cartesian_plan_plugin/point_tree_item.hpp
+  include/moveit_cartesian_plan_plugin/point_tree_model.hpp
+  include/moveit_cartesian_plan_plugin/widgets/path_planning_widget.hpp
+  include/moveit_cartesian_plan_plugin/generate_cartesian_path.hpp
 )
 
 set(moveit_cartesian_plan_plugin_UIS
   src/widgets/path_planning_widget.ui
 )
 
-set(moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES
+set(${PROJECT_NAME}_INCLUDE_DIRECTORIES
   include
-  ${CMAKE_CURRENT_BINARY_DIR}
+  "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}"
 )
+if(NOT EXISTS "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}")
+  file(MAKE_DIRECTORY "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}")
+ endif()
+
+
 
 catkin_package(
   INCLUDE_DIRS ${moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES}
@@ -64,13 +93,32 @@ catkin_package(
   visualization_msgs
 )
 
-qt4_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})
-qt4_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
+# ensure generated header files are being created in the devel space
+set(_cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_CURRENT_BINARY_DIR "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}")
+
+if(rviz_QT_VERSION VERSION_LESS "5")
+    message("Wrapping qt4 cpp")
+    qt4_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})
+    message("Wrapping qt4 ui")
+    qt4_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
+else()
+   message("Wrapping qt5 cpp")
+   qt5_wrap_cpp(moveit_cartesian_plan_plugin_MOCS ${moveit_cartesian_plan_plugin_HDRS})
+   message("Wrapping qt5 ui")
+   qt5_wrap_ui(moveit_cartesian_plan_plugin_UIS_H ${moveit_cartesian_plan_plugin_UIS})
+endif()
+
+set(CMAKE_CURRENT_BINARY_DIR "${_cmake_current_binary_dir}")
 
 include_directories(${moveit_cartesian_plan_plugin_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} ${moveit_cartesian_plan_plugin_SRCS} ${moveit_cartesian_plan_plugin_MOCS} ${moveit_cartesian_plan_plugin_UIS_H}) # ${moveit_cartesian_plan_plugin_UIS_H}
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${moveit_move_group_interface} yaml-cpp)
-## target_link_libraries(${PROJECT_NAME} yaml-cpp)
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${moveit_move_group_interface}
+  yaml-cpp
+  ${Boost_LIBRARIES}
+  ${QT_LIBRARIES})
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
@@ -78,7 +126,6 @@ class_loader_hide_library_symbols(${PROJECT_NAME})
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
 install(FILES plugin.xml

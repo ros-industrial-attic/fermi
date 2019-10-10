@@ -1,7 +1,7 @@
-#include <QtGui>
+#include <QtWidgets>
 
-#include <moveit_cartesian_plan_plugin/point_tree_item.h>
-#include <moveit_cartesian_plan_plugin/point_tree_model.h>
+#include <moveit_cartesian_plan_plugin/point_tree_item.hpp>
+#include <moveit_cartesian_plan_plugin/point_tree_model.hpp>
 
 PointTreeModel::PointTreeModel(const QStringList &headers, const QString &data,
                      QObject *parent)

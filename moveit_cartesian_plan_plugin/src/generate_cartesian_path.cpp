@@ -4,7 +4,7 @@
 #include <math.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
-#include <moveit_cartesian_plan_plugin/generate_cartesian_path.h>
+#include <moveit_cartesian_plan_plugin/generate_cartesian_path.hpp>
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -46,7 +46,7 @@ void GenerateCartesianPath::init()
   kmodel_ = robot_model_loader->getModel();
 
   end_eff_joint_groups = kmodel_->getEndEffectors();
-  
+
 
   ROS_INFO_STREAM("size of the end effectors is: "<<end_eff_joint_groups.size());
 
@@ -92,7 +92,7 @@ void GenerateCartesianPath::init()
 
   ROS_INFO_STREAM("Group name:"<< group_names[selected_plan_group]);
 
-  moveit_group_ = MoveGroupPtr(new move_group_interface::MoveGroup(group_names[selected_plan_group]));
+  moveit_group_ = MoveGroupPtr(new moveit::planning_interface::MoveGroupInterface(group_names[selected_plan_group]));
   kinematic_state_ = moveit::core::RobotStatePtr(new robot_state::RobotState(kmodel_));
   kinematic_state_->setToDefaultValues();
 
@@ -127,7 +127,7 @@ void GenerateCartesianPath::moveToPose(std::vector<geometry_msgs::Pose> waypoint
     moveit_group_->setPlanningTime(PLAN_TIME_);
     moveit_group_->allowReplanning (MOVEIT_REPLAN_);
 
-    move_group_interface::MoveGroup::Plan plan;
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
 
     moveit_msgs::RobotTrajectory trajectory_;
     double fraction = moveit_group_->computeCartesianPath(waypoints,CART_STEP_SIZE_,CART_JUMP_THRESH_,trajectory_,AVOID_COLLISIONS_);
@@ -243,13 +243,13 @@ void GenerateCartesianPath::getSelectedGroupIndex(int index)
   ROS_INFO_STREAM("selected name is:"<<group_names[selected_plan_group]);
   moveit_group_.reset();
   kinematic_state_.reset();
-  moveit_group_ = MoveGroupPtr(new move_group_interface::MoveGroup(group_names[selected_plan_group]));
+  moveit_group_ = MoveGroupPtr(new moveit::planning_interface::MoveGroupInterface(group_names[selected_plan_group]));
 
   kinematic_state_ = moveit::core::RobotStatePtr(new robot_state::RobotState(kmodel_));
   kinematic_state_->setToDefaultValues();
 
   joint_model_group_ = kmodel_->getJointModelGroup(group_names[selected_plan_group]);
-   
+
   ROS_INFO("End effector link is not empty");
   const Eigen::Affine3d &end_effector_state = kinematic_state_->getGlobalLinkTransform(moveit_group_->getEndEffectorLink());
   tf::transformEigenToTF(end_effector_state, end_effector);

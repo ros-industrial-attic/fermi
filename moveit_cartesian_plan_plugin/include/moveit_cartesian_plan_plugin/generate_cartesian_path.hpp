@@ -1,5 +1,5 @@
 // MoveIt!
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
@@ -12,14 +12,14 @@
 
 #include <QObject>
 #include <QTimer>
-#include <QtConcurrentRun>
+#include <QtConcurrent/QtConcurrent>
 #include <QFuture>
 
 
 #ifndef GENERATE_CARTESIAN_PATH_H_
 #define GENERATE_CARTESIAN_PATH_H_
 
-typedef boost::shared_ptr<move_group_interface::MoveGroup> MoveGroupPtr;
+typedef boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> MoveGroupPtr;
 typedef boost::shared_ptr<robot_model_loader::RobotModelLoader> RobotModelLoaderPtr;
 
 /*!
